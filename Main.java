@@ -2,6 +2,8 @@ import java.awt.*;
 import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.*;
+
 import javax.imageio.ImageIO;
 import java.awt.event.*;
 
@@ -26,7 +28,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     //GS base images
     public static BufferedImage home;
     public static BufferedImage credits;
-    public static BufferedImage tankselection;
+    public static BufferedImage tankSelection;
     public static BufferedImage PVPMode;
     public static BufferedImage PVPPause;
     public static BufferedImage PVPEnd;
@@ -47,7 +49,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     // Player stats, none are used yet
     // Player 1 (P1)
     public static String P1Name;
-    public static String P1Tank;
+    public static String P1Tank = "Titan"; // P1 default tank is Titan
     public static double P1Wins;
     public static double P1Battles;
     public static double P1Winrate;
@@ -59,7 +61,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     public static int P1Damage;
     // Player 2 (P2)
     public static String P2Name;
-    public static String P2Tank;
+    public static String P2Tank = "Mouse"; // P2 default tank is Mouse
     public static double P2Wins;
     public static double P2Battles;
     public static double P2Winrate;
@@ -72,9 +74,16 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 
     // General stats
     //TODO
+    // For Tank Selection GS
+    public static int currentPlayer = 1; // Default is P1
+    public static Map<String, Integer> tankSelectLocations = new HashMap<>();
+    public static String[] tankArr = {"Titan", "Mouse", "Ironclad", "Sentinel"};
+    
+    // For PVP End Screen GS
     public static String winnerPlayer;
     
-    //TODO game methods
+    
+    //TODO game methods, maybe in separate class file?
     
     // JPanel Settings
     public Main(){
@@ -93,66 +102,123 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     // Draw Screen
     public void paintComponent(Graphics g){
         super.paintComponent(g);
-        if(gameState == 0){
+        if(gameState == 0){ // Menu GS
         	g.drawImage(home, 0, 0, null);
         	// Detecting click for the menu buttons
         	// Tank selection button
-        	if((mouseX >= 40 && mouseX <= 210) && (mouseY >= 330 && mouseY <= 500)) {
+        	if((mouseX>=40 && mouseX<=210) && (mouseY>=330 && mouseY<=500)) {
         		gameState = 2;
         		mouseX = 0;
         		mouseY = 0;
         	}
         	// Credits button
-        	if((mouseX >= 40 && mouseX <= 210) && (mouseY >= 600 && mouseY <= 770)) {
+        	if((mouseX>=40 && mouseX<=210) && (mouseY>=600 && mouseY<=770)) {
         		gameState = 1;
         		mouseX = 0;
         		mouseY = 0;
         	}
         	// Leaderboard button
-        	if((mouseX >= 2275 && mouseX <= 2460) && (mouseY >= 330 && mouseY <= 515)) {
+        	if((mouseX>=2275 && mouseX<=2460) && (mouseY>=330 && mouseY<=515)) {
         		gameState = 5;
         		mouseX = 0;
         		mouseY = 0;
         	}
         	// Video tutorial button
-        	if((mouseX >= 2275 && mouseX <= 2460) && (mouseY >= 600 && mouseY <= 785)) {
+        	if((mouseX>=2275 && mouseX<=2460) && (mouseY>=600 && mouseY<=785)) {
         		//TODO
         		System.out.println("welcome to the video tutorial (coming soon)");
         		mouseX = 0;
         		mouseY = 0;
         	}
-        	
         	// START button
-        	if((mouseX >= 710 && mouseX <= 1715) && (mouseY >= 1015 && mouseY <= 1170)) {
+        	if((mouseX>=710 && mouseX<=1715) && (mouseY>=1015 && mouseY<=1170)) {
         		gameState = 3;
         		mouseX = 0;
         		mouseY = 0;
         	}
-      
         }
-        else if(gameState == 1){
+        else if(gameState == 1){ // Credits GS
         	g.drawImage(credits, 0, 0, null);
         	
         }
-        else if(gameState == 2){
-        	g.drawImage(tankselection, 0, 0, null);
-        	//TODO allow player to choose tank
+        else if(gameState == 2){ // Tank Selection GS
+        	g.drawImage(tankSelection, 0, 0, null);
+        	// Player Selection:
+        	// Player 1 selected
+        	if((mouseX>=183 && mouseX<=440) && (mouseY>=260 && mouseY<=355)) {
+        		currentPlayer = 1;
+        		mouseX = 0;
+        		mouseY = 0;
+        	}
+        	// Player 2 selected
+        	else if((mouseX>=183 && mouseX<=440) && (mouseY>=523 && mouseY<=618)) {
+        		currentPlayer = 2;
+        		mouseX = 0;
+        		mouseY = 0;
+        	}
+        	
+        	// Selecting tanks:
+        	for(int i = 0; i < 4; i++) {
+        		if((mouseX>=tankSelectLocations.get(tankArr[i]+"X") &&
+    				mouseX<=tankSelectLocations.get(tankArr[i]+"X")+270) && 
+    				(mouseY>=tankSelectLocations.get(tankArr[i]+"Y") && 
+    				mouseY<=tankSelectLocations.get(tankArr[i]+"Y")+285)) 
+        		{ // using tankArr, checks for if mouseX and mouseY is within each 
+        		  // tank's X and Y rectangle areas drawn from their top left corner
+        	      // (hence the +270 (width) and +285 (height)), with those values from
+        		  // the tankSelectLocations hashmap. Saves the need to write 4 if statements
+        			if(currentPlayer == 1) {
+            			P1Tank = tankArr[i];
+            			System.out.printf("P1 Tank: %s%n", P1Tank); // Message for devs
+            			// to confirm tank was selected
+            			// TODO remove all console messages later
+            		}	
+            		else {
+            			P2Tank = tankArr[i];
+            			System.out.printf("P2 Tank: %s%n", P2Tank);
+            		}	
+            		mouseX = 0;
+            		mouseY = 0;
+            	}
+        	}	
+        	
+        	// Markers/border for tank chosen:
+        	Graphics2D g2 = (Graphics2D) g.create();
+        	g2.setStroke(new BasicStroke(15)); // Setting thickness of border
+        	
+        	// P1 tanks' markers
+    		g2.setColor(new Color(194, 164, 0)); // gold color
+    		g2.drawRect(tankSelectLocations.get(P1Tank+"X")-30, // -30 for a bigger border
+    					tankSelectLocations.get(P1Tank+"Y")-30, 330, 345);
+        	// P2 tanks' markers
+			g2.setColor(new Color(225, 74, 61)); // red color
+    		g2.drawRect(tankSelectLocations.get(P2Tank+"X")-30, 
+    					tankSelectLocations.get(P2Tank+"Y")-30, 330, 345);
+        	
+    		// Checks if both players' tanks are the same, then show special marker
+    		if(P1Tank == P2Tank) {
+    			g2.setColor(new Color(228, 119, 47)); // Orange for both players
+    			g2.drawRect(tankSelectLocations.get(P1Tank+"X")-30,
+        					tankSelectLocations.get(P1Tank+"Y")-30, 330, 345);
+    		}
+
+    		
         	//TODO allow player to choose player name (textfile streaming)
         }
-        else if(gameState == 3){
+        else if(gameState == 3){ // PVP Mode GS
         	g.drawImage(PVPMode, 0, 0, null);
         	//TODO make actual game
         	
-        	if(isPaused) {
+        	if(isPaused) { // PVP Pause screen
         		g.drawImage(PVPPause, 0, 0, null);
         		// TODO lock controls during pause
         	}
         }
-        else if(gameState == 4) {
+        else if(gameState == 4) { // PVP End Screen GS
         	g.drawImage(PVPEnd, 0, 0, null);
         	//TODO display winner player name, tank visual & tank name
         }
-        else if(gameState == 5){
+        else if(gameState == 5){ // PVP Leaderboard GS
         	g.drawImage(PVPLeaderboard, 0, 0, null);
         	//TODO display top 3 players by wins & show their winrate (textfile streaming)
         }
@@ -165,14 +231,22 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     	System.setProperty("sun.java2d.uiScale", "1.0");
     	
     	// Image Importation
-    	home 			= ImageIO.read(new File("GameStates/GS0 - Menu Screen (1).png"));
+    	home 			= ImageIO.read(new File("GameStates/GS0 - Menu Screen.png"));
     	credits 		= ImageIO.read(new File("GameStates/GS1 - Credit.png"));
-    	tankselection 	= ImageIO.read(new File("GameStates/GS2 - Tank Selection.png"));
+    	tankSelection 	= ImageIO.read(new File("GameStates/GS2 - Tank Selection.png"));
     	PVPMode 		= ImageIO.read(new File("GameStates/GS3 - PVP.png"));
     	PVPPause 		= ImageIO.read(new File("PVP Pause Screen.png"));
     	PVPEnd 			= ImageIO.read(new File("GameStates/GS4 - PVP End Screen.png"));
     	PVPLeaderboard 	= ImageIO.read(new File("GameStates/GS5 - PVP Mode Leaderboard.png"));
-    	
+    	// For Tank Selection GS
+    	tankSelectLocations.put("TitanX", 1525);
+    	tankSelectLocations.put("TitanY", 365);
+    	tankSelectLocations.put("MouseX", 1525);
+    	tankSelectLocations.put("MouseY", 815);
+    	tankSelectLocations.put("IroncladX", 2045);
+    	tankSelectLocations.put("IroncladY", 365);
+    	tankSelectLocations.put("SentinelX", 2045);
+    	tankSelectLocations.put("SentinelY", 815);
     	
     	// JFrame and JPanel
     	JFrame frame = new JFrame("Juggernaut Assault");
