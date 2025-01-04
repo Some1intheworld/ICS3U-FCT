@@ -108,34 +108,26 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	// Tank selection button
         	if((mouseX>=40 && mouseX<=210) && (mouseY>=330 && mouseY<=500)) {
         		gameState = 2;
-        		mouseX = 0;
-        		mouseY = 0;
         	}
         	// Credits button
-        	if((mouseX>=40 && mouseX<=210) && (mouseY>=600 && mouseY<=770)) {
+        	else if((mouseX>=40 && mouseX<=210) && (mouseY>=600 && mouseY<=770)) {
         		gameState = 1;
-        		mouseX = 0;
-        		mouseY = 0;
         	}
         	// Leaderboard button
-        	if((mouseX>=2275 && mouseX<=2460) && (mouseY>=330 && mouseY<=515)) {
+        	else if((mouseX>=2275 && mouseX<=2460) && (mouseY>=330 && mouseY<=515)) {
         		gameState = 5;
-        		mouseX = 0;
-        		mouseY = 0;
         	}
         	// Video tutorial button
-        	if((mouseX>=2275 && mouseX<=2460) && (mouseY>=600 && mouseY<=785)) {
+        	else if((mouseX>=2275 && mouseX<=2460) && (mouseY>=600 && mouseY<=785)) {
         		//TODO
         		System.out.println("welcome to the video tutorial (coming soon)");
-        		mouseX = 0;
-        		mouseY = 0;
         	}
         	// START button
-        	if((mouseX>=710 && mouseX<=1715) && (mouseY>=1015 && mouseY<=1170)) {
+        	else if((mouseX>=710 && mouseX<=1715) && (mouseY>=1015 && mouseY<=1170)) {
         		gameState = 3;
-        		mouseX = 0;
-        		mouseY = 0;
         	}
+        	mouseX = 0; // resets mouse position
+    		mouseY = 0;
         }
         else if(gameState == 1){ // Credits GS
         	g.drawImage(credits, 0, 0, null);
@@ -182,7 +174,15 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
             	}
         	}	
         	
-        	// Markers/border for tank chosen:
+        	// Tank Name next to Player #:
+        	// P1
+        	g.setColor(new Color(255, 255, 255)); // white
+        	g.setFont(new Font("Arial", 1, 60));
+        	g.drawString(P1Tank.toUpperCase(), 525, 335);
+        	// P2
+        	g.drawString(P2Tank.toUpperCase(), 525, 595);
+        	
+        	// Indicators/border for tank chosen:
         	Graphics2D g2 = (Graphics2D) g.create();
         	g2.setStroke(new BasicStroke(15)); // Setting thickness of border
         	
@@ -195,13 +195,12 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     		g2.drawRect(tankSelectLocations.get(P2Tank+"X")-30, 
     					tankSelectLocations.get(P2Tank+"Y")-30, 330, 345);
         	
-    		// Checks if both players' tanks are the same, then show special marker
+    		// Checks if both players' tanks are the same, then show special indicator
     		if(P1Tank == P2Tank) {
     			g2.setColor(new Color(228, 119, 47)); // Orange for both players
     			g2.drawRect(tankSelectLocations.get(P1Tank+"X")-30,
         					tankSelectLocations.get(P1Tank+"Y")-30, 330, 345);
     		}
-
     		
         	//TODO allow player to choose player name (textfile streaming)
         }
