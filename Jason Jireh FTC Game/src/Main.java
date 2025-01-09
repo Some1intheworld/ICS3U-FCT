@@ -40,8 +40,11 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static BufferedImage crate;
 	public static BufferedImage rock;
 	public static BufferedImage wall;
-    // abilities  
-    
+	
+  // abilities  
+  public static BufferedImage missile;
+	public static int missileX;
+	public static int missileY;
     
     // Mouse/Keyboard Events
     public static int mouseX;
@@ -93,9 +96,15 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 
 	// For PVP Mode GS
 	public static Map<String, BufferedImage> tankImages = new HashMap<>();
+	public static Map<Integer, Integer> playerCoordinates = new HashMap<>();
+	public static int enemyPlayer = 2;
+
 	public static int currentTurn = 1;
+	public static int currentAbility = 1;
+	public static String currentAbilityName = "";
 	public static boolean aPressed;
 	public static boolean dPressed;
+	public static boolean fire = false;
 	
 	public static boolean gameOver;
 		
@@ -155,9 +164,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	if((mouseX>=710 && mouseX<=1715) && (mouseY>=1015 && mouseY<=1170)) {
         		gameState = 3;
         		mouseReset = true;
-        		
-        		currentTurn = 1;
-        		gameOver = false;
         	}
         }
         else if(gameState == 1){ // Credits GS
@@ -239,7 +245,8 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			g.drawString(P1Name, 615, 460);
 			g.drawString(P2Name, 615, 725);
         }
-        else if(gameState == 3){ // PVP Mode GS
+				// ! -------------------------------------------------------------------- PVP Mode GS   --------------------------------------------------------------------
+        else if(gameState == 3){ // ! PVP Mode GS
         	g.drawImage(PVPMode, 0, 0, null);
 			if(currentTurn == 1) {
 				if(aPressed) {
@@ -261,6 +268,10 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 					P2GoingRight = true;
 				}
 			}
+
+
+
+
 			// P1 tank movement & deaths
 			if(P1Dead && P1GoingRight) { // P1 death flip facing right
 				g.drawImage(PVPMethods.flipImageVertical(
@@ -294,13 +305,51 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			if(P1Dead || P2Dead) {
 				gameOver = true;
 			}
+			g.setColor(new Color(0, 0, 0));
+			g.setFont(new Font("Arial", 1, 50));
+			g.drawString(currentAbilityName, 1795, 105);
+			if(mouseX >= 2078 && mouseX <= 2269 && mouseY >= 933 && mouseY <= 1124) {
+						g.drawString(currentAbility + "", 100, 100);
+						fire = true;
+						mouseX = 0;
+						mouseY = 0;
+				}
+			// ! ======== Shooting / Abilities mechanics =======
+			enemyPlayer = (currentTurn == 1)? 2 : 1;
+			if(currentAbility == 1) {
+				//missileX = playerCoordinates.get(currentTurn);
+				currentAbilityName = "Missile";
+				if(fire) {
+					g.drawImage(missile, missileX, missileY, null);
+				}
+
+				if(missileX < enemyPlayer) missileX += 10;
+			}
+			
+
+			} else if(currentAbility == 2) {	
+				if(P1Tank == "Titan" || P2Tank == "Titan") {
+					currentAbilityName = "Lighting Strike";
+				}
+				else if(P1Tank == "Mouse" || P2Tank == "Mouse") {
+					currentAbilityName = "Shrink";
+				}
+				else if(P1Tank == "Ironclad" || P2Tank == "Ironclad") {
+					currentAbilityName = "Damage Reduction";
+				}
+				else if(P1Tank == "Sentinel" || P2Tank == "Sentinel") {
+					currentAbilityName = "Electrogun";
+				}
+			
+			}
+			
 			
 			// PVP Pause screen
         	if(isPaused) { 
         		g.drawImage(PVPPause, 0, 0, null);
         		// TODO lock controls during pause
         	}
-        }
+        
         else if(gameState == 4) { // PVP End Screen GS
         	g.drawImage(PVPEnd, 0, 0, null);
         	// Resetting tanks
@@ -310,14 +359,16 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
             P1Y = 685;
             P1GoingRight = true;
             P2GoingRight = false;
+        		
+			currentTurn = 1;
+			gameOver = false;
         	//TODO display winner player name, tank visual & tank name
         }
         else if(gameState == 5){ // PVP Leaderboard GS
         	g.drawImage(PVPLeaderboard, 0, 0, null);
         	//TODO display top 3 players by wins & show their winrate (textfile streaming)
         }
-
-    }
+	}
     
     // Mouse and Keyboard Methods
     public static void main(String[] args) throws IOException{
@@ -329,7 +380,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     	home 			= ImageIO.read(new File("GameStates/GS0 - Menu Screen.png"));
     	credits 		= ImageIO.read(new File("GameStates/GS1 - Credit.png"));
     	tankSelection 	= ImageIO.read(new File("GameStates/GS2 - Tank Selection.png"));
-    	PVPMode 		= ImageIO.read(new File("GameStates/GS3 - PVP.png"));
+    	PVPMode 		= ImageIO.read(new File("map1.png"));
     	PVPPause 		= ImageIO.read(new File("PVP Pause Screen.png"));
     	PVPEnd 			= ImageIO.read(new File("GameStates/GS4 - PVP End Screen.png"));
     	PVPLeaderboard 	= ImageIO.read(new File("GameStates/GS5 - PVP Mode Leaderboard.png"));
@@ -340,6 +391,11 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 		sentinelTank 	= ImageIO.read(new File("Tanks/Sentinel Tank.png"));
 		// Obstacles
 		rock 			= ImageIO.read(new File("Obstacles/rock.png"));
+
+		// Abilities
+		missile 		= ImageIO.read(new File("Abilities/missile.png"));
+
+		
     	
 		// Maps:
 		// For Tank Selection GS
@@ -358,6 +414,9 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 		tankImages.put("IroncladTank", ironcladTank);
 		tankImages.put("SentinelTank", sentinelTank);
 
+		playerCoordinates.put(1, P1X);
+		playerCoordinates.put(2, P2X);
+		
     	// JFrame and JPanel
     	JFrame frame = new JFrame("Juggernaut Assault");
         Main panel = new Main();
@@ -443,13 +502,20 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     			gameState = 4;
     		}
     		if(e.getKeyChar() == '/') { // dev key for player turn switch
-    			currentTurn = (currentTurn == 2)? 1 : 2;
+    			currentTurn = (currentTurn == 1)? 2 : 1;
     		}
-    		if(e.getKeyChar() == '0') { // dev key for killing both tanks
+    		if(e.getKeyChar() == '0') { // dev key for killing both tanks & reviving
     			P1Dead = !P1Dead;
     			P2Dead = !P2Dead;
     			gameOver = !gameOver;
     		}
+
+			if(e.getKeyChar() == '1'){
+				currentAbility = 1;
+			}
+			if(e.getKeyChar() == '2'){
+				currentAbility = 2;
+			}
     	}
     	else if(gameState == 4) 
     		gameState = 5;
