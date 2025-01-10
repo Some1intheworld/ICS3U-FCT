@@ -11,7 +11,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     // JFrame icon
 	public static ImageIcon iconImg = new ImageIcon("Tanks/Mouse Tank.png");
 	
-	// Game States
+	// ! Game States
 	// 0 <- Home Screen
     // 1 <- Credits
     // 2 <- Tank & Player Selection
@@ -21,7 +21,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     public static int gameState = 0;
     public static boolean isPaused;
     
-    // Buffered Images
+    // ! Buffered Images
     //GS base images
     public static BufferedImage home;
     public static BufferedImage credits;
@@ -40,19 +40,13 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static BufferedImage crate;
 	public static BufferedImage rock;
 	public static BufferedImage wall;
-	
-  // abilities  
-  public static BufferedImage missile;
-	public static int missileX;
-	public static int missileY;
     
-    // Mouse/Keyboard Events
+    // ! Mouse/Keyboard Events
     public static int mouseX;
     public static int mouseY;
     
     public static boolean mouseReset = true;
-    // Game Stats
-    // Player stats, none are used yet
+    // ! Game Stats
     // Player 1 (P1)
     // Tank Selection GS & Leaderboard GS
     public static String P1Name = "";
@@ -85,7 +79,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     public static int P2Damage;
     public static boolean P2Dead;
     
-    // General stats
+    // ! General stats
     // For Tank Selection GS
     public static int currentPlayer = 1; // Default is P1
 	public static Map<String, Integer> tankSelectLocations = new HashMap<>();
@@ -96,7 +90,8 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 
 	// For PVP Mode GS
 	public static Map<String, BufferedImage> tankImages = new HashMap<>();
-	public static Map<Integer, Integer> playerCoordinates = new HashMap<>();
+	public static Map<String, Integer> playerCoordinates = new HashMap<>();
+	public static Map<Integer, Boolean> playerDirectionMap = new HashMap<>();
 	public static int enemyPlayer = 2;
 
 	public static int currentTurn = 1;
@@ -107,12 +102,17 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static boolean fire = false;
 	
 	public static boolean gameOver;
-		
+	
+	// ! abilities  
+	public static BufferedImage missile;
+	public static int missileX;
+	public static int missileY;
+	public static boolean missileStarted;
+	public static int power = 0;
+	public static int increment = 10;
+	
     // For PVP End Screen GS
     public static String winnerPlayer;
-    
-    
-    // TODO game methods, maybe in separate class file?
     
     // JPanel Settings
     public Main(){
@@ -269,9 +269,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 				}
 			}
 
-
-
-
 			// P1 tank movement & deaths
 			if(P1Dead && P1GoingRight) { // P1 death flip facing right
 				g.drawImage(PVPMethods.flipImageVertical(
@@ -308,25 +305,63 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			g.setColor(new Color(0, 0, 0));
 			g.setFont(new Font("Arial", 1, 50));
 			g.drawString(currentAbilityName, 1795, 105);
+			g.drawString(power +"", 400, 400);
 			if(mouseX >= 2078 && mouseX <= 2269 && mouseY >= 933 && mouseY <= 1124) {
 						g.drawString(currentAbility + "", 100, 100);
 						fire = true;
+						missileStarted = true;
 						mouseX = 0;
 						mouseY = 0;
 				}
 			// ! ======== Shooting / Abilities mechanics =======
 			enemyPlayer = (currentTurn == 1)? 2 : 1;
+			playerCoordinates.put("1X", P1X);
+			playerCoordinates.put("1Y", P1Y);
+			playerCoordinates.put("2X", P2X);
+			playerCoordinates.put("2Y", P2Y);
+			playerDirectionMap.put(1, P1GoingRight);
+			playerDirectionMap.put(2, P2GoingRight);
+			if(!fire) {
+				power += increment;
+				if(power > 1700) {
+					increment = -10;
+				} else if(power <= 0) increment = 10;
+			}
+			if(missileStarted) {
+				missileX = playerCoordinates.get(currentTurn+"X");
+				missileY = playerCoordinates.get(currentTurn+"Y")-256;
+				missileStarted = false;
+			}
+			
 			if(currentAbility == 1) {
-				//missileX = playerCoordinates.get(currentTurn);
 				currentAbilityName = "Missile";
 				if(fire) {
 					g.drawImage(missile, missileX, missileY, null);
+					missileX += increment;
+				}
+				// Impact on enemy tank
+				if(fire && missileX+128 >= playerCoordinates.get(enemyPlayer+"X") &&
+						missileX+128 <= playerCoordinates.get(enemyPlayer+"X")+180) {
+					fire = false;
+					//System.out.println("hit");
+				}
+				if(playerDirectionMap.get(currentTurn) == true) {
+					increment = 10;
+				}
+				else{
+					increment = -10;
 				}
 
-				if(missileX < enemyPlayer) missileX += 10;
+				
+				if(fire && missileX+128 >= playerCoordinates.get(currentTurn+"X") + power) {
+					fire = false;
+					// FIXME missile should not move along with tank
+				}
+				
+
 			}
 			
-
+			//System.out.println(playerCoordinates.get(currentTurn));
 			} else if(currentAbility == 2) {	
 				if(P1Tank == "Titan" || P2Tank == "Titan") {
 					currentAbilityName = "Lighting Strike";
@@ -362,6 +397,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         		
 			currentTurn = 1;
 			gameOver = false;
+			fire = false;
         	//TODO display winner player name, tank visual & tank name
         }
         else if(gameState == 5){ // PVP Leaderboard GS
@@ -394,7 +430,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 
 		// Abilities
 		missile 		= ImageIO.read(new File("Abilities/missile.png"));
-
+		
 		
     	
 		// Maps:
@@ -414,8 +450,8 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 		tankImages.put("IroncladTank", ironcladTank);
 		tankImages.put("SentinelTank", sentinelTank);
 
-		playerCoordinates.put(1, P1X);
-		playerCoordinates.put(2, P2X);
+		
+		
 		
     	// JFrame and JPanel
     	JFrame frame = new JFrame("Juggernaut Assault");
