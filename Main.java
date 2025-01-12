@@ -17,7 +17,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     // 2 <- Tank & Player Selection
     // 3 <- PVP Mode & PVP Pause Screen
 	// 4 <- PVP End Screen
-	// 5 <- Solo Mode Leaderboard
+	// 5 <- Solo Mode Leaderboard	
     public static int gameState = 0;
     public static boolean isPaused;
     
@@ -55,7 +55,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     public static double P1Battles;
     public static double P1Winrate;
     // PVP Mode GS
-    public static int P1X = 0; 
+    public static int P1X = 10; 
     public static int P1Y = 685;
     public static boolean P1GoingRight = true;
     
@@ -71,7 +71,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     public static double P2Battles;
     public static double P2Winrate;
     // PVP Mode GS
-    public static int P2X = 2320; 
+    public static int P2X = 2310; 
     public static int P2Y = 685;
     public static boolean P2GoingRight;
     
@@ -89,10 +89,10 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static boolean isTypingP2;
 
 	// For PVP Mode GS
+	public static boolean PVPFirstEnter;
 	public static Map<String, BufferedImage> tankImages = new HashMap<>();
-	public static Map<String, Integer> playerCoordinates = new HashMap<>();
 	public static int enemyPlayer = 2;
-
+	
 	public static int currentTurn = 1;
 	public static int currentAbility = 1;
 	public static String currentAbilityName = "";
@@ -102,14 +102,33 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	
 	public static boolean gameOver;
 	
+	// For PVP Methods/shortening code
+	public static int[] playerCoordinatesArr = {P1X, P2X, P1Y, P2Y}; // Use playerCoordinatesArr[currentTurn-1] to get player x,
+	// use playerCoordinatesArr[currentTurn+1] to get player y
+	public static boolean[] playerDirectionArr = {P1GoingRight, P2GoingRight};
+	public static boolean[] playerDeathArr = new boolean[2];
+	public static String[] playerTankArr = new String[2];
+	public static int tankFlippedLow;
+	
 	// ! abilities  
 	public static BufferedImage missile;
 	public static int missileX;
 	public static int missileY;
+	public static int missileXStart;
+	public static boolean missileDirectionRight = true;
+	
 	public static boolean missileStarted;
+	public static int power = 0;
+	public static int increment = 10;
+	public static int fireIncrement = 10;
 	
     // For PVP End Screen GS
     public static String winnerPlayer;
+    public static int PVPEndScreenFrameCounter = 0;
+    
+    // For PVP Leaderboard Screen GS
+    public static int previousGS;
+    public static int leaderboardScreenFrameCounter = 0;
     
     // JPanel Settings
     public Main(){
@@ -124,7 +143,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         thread.start();
         
     }
-
+    
     // Draw Screen
     public void paintComponent(Graphics g){
         super.paintComponent(g);
@@ -135,6 +154,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         		mouseY = 0;
         		mouseReset = false;
         	}
+    		previousGS = 0;
         	// Detecting click for the menu buttons
         	// Tank selection button
         	if((mouseX>=40 && mouseX<=210) && (mouseY>=330 && mouseY<=500)) {
@@ -161,6 +181,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	if((mouseX>=710 && mouseX<=1715) && (mouseY>=1015 && mouseY<=1170)) {
         		gameState = 3;
         		mouseReset = true;
+        		PVPFirstEnter = true;
         	}
         }
         else if(gameState == 1){ // Credits GS
@@ -168,26 +189,33 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         }
         else if(gameState == 2){ // Tank Selection GS
         	g.drawImage(tankSelection, 0, 0, null);
+        	Graphics2D g2 = (Graphics2D) g.create();
         	// Player Selection:
+        	g2.setStroke(new BasicStroke(3));
         	// Player 1 selected
         	if((mouseX>=183 && mouseX<=440) && (mouseY>=260 && mouseY<=355)) {
         		currentPlayer = 1;
+        	}
+        	if(currentPlayer == 1) {
+        		g2.setColor(new Color(194, 164, 0)); // gold color
+        		g2.drawRect(178, 255, 268, 105);
         	}
         	// Player 2 selected
         	if((mouseX>=183 && mouseX<=440) && (mouseY>=523 && mouseY<=618)) {
         		currentPlayer = 2;
         	}
+        	if(currentPlayer == 2) {
+        		g2.setColor(new Color(225, 74, 61)); // red color
+        		g2.drawRect(178, 518, 272, 105);
+        	}
         	
         	// Selecting tanks:
         	for(int i = 0; i < 4; i++) {
-        		if((mouseX>=tankSelectLocations.get(tankArr[i]+"X") &&
+        		if((mouseX>=tankSelectLocations.get(tankArr[i]+"X") && 
     				mouseX<=tankSelectLocations.get(tankArr[i]+"X")+278) && 
     				(mouseY>=tankSelectLocations.get(tankArr[i]+"Y") && 
     				mouseY<=tankSelectLocations.get(tankArr[i]+"Y")+333)) 
-        		{ // using tankArr, checks for if mouseX and mouseY is within each 
-        		  // tank's X and Y rectangle areas drawn from their top left corner
-        	      // (hence the +270 (width) and +285 (height)), with those values from
-        		  // the tankSelectLocations hashmap. Saves the need to write 4 if statements
+        		{
         			if(currentPlayer == 1)
             			P1Tank = tankArr[i];	
             		else
@@ -204,7 +232,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	g.drawString(P2Tank.toUpperCase(), 525, 595);
         	
         	// Indicators/border for tank chosen:
-        	Graphics2D g2 = (Graphics2D) g.create();
         	g2.setStroke(new BasicStroke(15)); // Setting thickness of border
         	
         	// P1 tanks' markers
@@ -223,11 +250,16 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     		}
 
         	// allow player to choose player name (TODO textfile streaming)
-			if(mouseX >= 600 && mouseX <= 1143 && mouseY >= 400 && mouseY <= 485) {
+    		g2.setStroke(new BasicStroke(3));
+    		if(mouseX >= 600 && mouseX <= 1143 && mouseY >= 400 && mouseY <= 485) {
 				isTypingP1 = true;
+				g2.setColor(new Color(194, 164, 0)); 
+        		g2.drawRect(596, 395, 552, 93);
 			} 
 			if(mouseX >= 600 && mouseX <= 1143 && mouseY >= 665 && mouseY <= 750) {
 				isTypingP2 = true;
+				g2.setColor(new Color(225, 74, 61));
+        		g2.drawRect(596, 661, 552, 93);
 			}
 			// Exiting
 			if(!(mouseX >= 600 && mouseX <= 1143 && mouseY >= 400 && mouseY <= 485)) {
@@ -245,104 +277,74 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 				// ! -------------------------------------------------------------------- PVP Mode GS   --------------------------------------------------------------------
         else if(gameState == 3){ // ! PVP Mode GS
         	g.drawImage(PVPMode, 0, 0, null);
-			if(currentTurn == 1) {
-				if(aPressed) {
-					P1X -= 5;
-					P1GoingRight = false;
-				}
-				if(dPressed) {
-					P1X += 5;
-					P1GoingRight = true;
-				}
-			} 
-			else if (currentTurn == 2) {
-				if(aPressed) {
-					P2X -= 5;
-					P2GoingRight = false;
-				}
-				if(dPressed) {
-					P2X += 5;
-					P2GoingRight = true;
-				}
+			if(PVPFirstEnter) {
+				Main.playerCoordinatesArr[0] = Main.P1X;
+		        Main.playerCoordinatesArr[1] = Main.P2X;
+		        Main.playerDirectionArr[0] = Main.P1GoingRight;
+		        Main.playerDirectionArr[1] = Main.P2GoingRight;
+		        PVPFirstEnter = false;
 			}
-
-			// P1 tank movement & deaths
-			if(P1Dead && P1GoingRight) { // P1 death flip facing right
-				g.drawImage(PVPMethods.flipImageVertical(
-					PVPMethods.flipImageHorizontal(tankImages.get(P1Tank+"Tank"))), P1X, P1Y+25, null);
-			}
-			else if (P1Dead) { // death facing left
-				g.drawImage(PVPMethods.flipImageVertical(tankImages.get(P1Tank+"Tank")), P1X, P1Y+25, null);
-			}
-			else if(P1GoingRight) {
-				g.drawImage(PVPMethods.flipImageHorizontal(tankImages.get(P1Tank+"Tank")), P1X, P1Y, null);
-			}
-			else {
-				g.drawImage(tankImages.get(P1Tank+"Tank"), P1X, P1Y, null);
-			}
-			// P2 tank movement & deaths
-			if(P2Dead && P2GoingRight) { // P2 death flip facing right
-				g.drawImage(PVPMethods.flipImageVertical(
-					PVPMethods.flipImageHorizontal(tankImages.get(P2Tank+"Tank"))), P2X, P2Y+25, null);
-			}
-			else if (P2Dead) { // death facing left
-				g.drawImage(PVPMethods.flipImageVertical(tankImages.get(P2Tank+"Tank")), P2X, P2Y+25, null);
-			}
-			else if(P2GoingRight) {
-				g.drawImage(PVPMethods.flipImageHorizontal(tankImages.get(P2Tank+"Tank")), P2X, P2Y, null);
-			}
-			else {
-				g.drawImage(tankImages.get(P2Tank+"Tank"), P2X, P2Y, null);
-			}
+        	// Player movement	
+        	PVPMethods.playerMovement();
+        	
+        	// Updates arrays with current variables
+        	playerDeathArr[0] = P1Dead;
+        	playerDeathArr[1] = P2Dead;
+        	playerTankArr[0] = P1Tank;
+        	playerTankArr[1] = P2Tank;
+        	
+			// Drawing P1 tank movement, deaths, & name
+        	g.drawImage(PVPMethods.drawPlayer(1), P1X, P1Y+tankFlippedLow, null);
+        	// P1 Name
+        	g.setColor(PVPMethods.nameColor(P1Dead)); // Sets color
+        	g.setFont(new Font("Arial", 1, 50));
+        	g.drawString(PVPMethods.displayName(P1Name, 1), P1X, P1Y-120);
+        	
+			// Drawing P2 tank movement, deaths, & name
+        	g.drawImage(PVPMethods.drawPlayer(2), P2X, P2Y+tankFlippedLow, null);
+        	// P2 Name
+        	g.setColor(PVPMethods.nameColor(P2Dead));
+        	g.drawString(PVPMethods.displayName(P2Name, 2), P2X, P2Y-120);
 			
 			// Player deaths
 			if(P1Dead || P2Dead) {
 				gameOver = true;
 			}
+			// Fire button
 			g.setColor(new Color(0, 0, 0));
 			g.setFont(new Font("Arial", 1, 50));
 			g.drawString(currentAbilityName, 1795, 105);
+			g.drawString(power +"", 400, 400);
 			if(mouseX >= 2078 && mouseX <= 2269 && mouseY >= 933 && mouseY <= 1124) {
-						g.drawString(currentAbility + "", 100, 100);
-						fire = true;
-						missileStarted = true;
-						mouseX = 0;
-						mouseY = 0;
-				}
+				g.drawString(currentAbility + "", 100, 100);
+				fire = true;
+				missileStarted = true;
+				mouseX = 0;
+				mouseY = 0;
+			}
 			// ! ======== Shooting / Abilities mechanics =======
 			enemyPlayer = (currentTurn == 1)? 2 : 1;
-			playerCoordinates.put("1X", P1X);
-			playerCoordinates.put("1Y", P1Y);
-			playerCoordinates.put("2X", P2X);
-			playerCoordinates.put("2Y", P2Y);
-			if(missileStarted) {
-				missileX = playerCoordinates.get(currentTurn+"X");
-				missileY = playerCoordinates.get(currentTurn+"Y")-256;
+			if(!fire) {
+				PVPMethods.powerRangeDeterminer();
+			}
+			if(missileStarted) { 
+				PVPMethods.missileStartAndDirectionLocate();
 				missileStarted = false;
 			}
 			
 			if(currentAbility == 1) {
 				currentAbilityName = "Missile";
-				if(fire) {
+				PVPMethods.missileDirection();
+				if(fire) { // Opened fire
 					g.drawImage(missile, missileX, missileY, null);
-				}
-
-				if(missileX < playerCoordinates.get(enemyPlayer+"X")) {
-					missileX += 10;
-				}
-				if(missileX > playerCoordinates.get(enemyPlayer+"X")) {
-					missileX -= 10;
-				}
-				// Impact on enemy tank
-				if(missileX+128 >= playerCoordinates.get(enemyPlayer+"X") &&
-						missileX+128 <= playerCoordinates.get(enemyPlayer+"X")+180) {
-					fire = false;
-					System.out.println("hit");
-				}
+					missileX += fireIncrement;
+					PVPMethods.missilePowerCheck();
+					PVPMethods.enemyHitCheck();
+				} 
+				
 			}
 			
-			//System.out.println(playerCoordinates.get(currentTurn));
-			} else if(currentAbility == 2) {	
+			} else if(currentAbility == 2) { // Note: make some methods for abilities
 				if(P1Tank == "Titan" || P2Tank == "Titan") {
 					currentAbilityName = "Lighting Strike";
 				}
@@ -357,7 +359,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 				}
 			
 			}
-			
+		
 			
 			// PVP Pause screen
         	if(isPaused) { 
@@ -367,6 +369,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         
         else if(gameState == 4) { // PVP End Screen GS
         	g.drawImage(PVPEnd, 0, 0, null);
+        	previousGS = 4;
         	// Resetting tanks
         	P2X = 2320; 
             P2Y = 685;
@@ -374,14 +377,18 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
             P1Y = 685;
             P1GoingRight = true;
             P2GoingRight = false;
-        		
+        	// General game resets	
 			currentTurn = 1;
 			gameOver = false;
 			fire = false;
+			power = 0;
+			
+			PVPEndScreenFrameCounter++;
         	//TODO display winner player name, tank visual & tank name
         }
         else if(gameState == 5){ // PVP Leaderboard GS
         	g.drawImage(PVPLeaderboard, 0, 0, null);
+        	leaderboardScreenFrameCounter++;
         	//TODO display top 3 players by wins & show their winrate (textfile streaming)
         }
 	}
@@ -462,10 +469,17 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     	
     	if(gameState == 1)
     		gameState = 0;
-    	else if(gameState == 4) 
+    	else if(gameState == 4 && PVPEndScreenFrameCounter >= 50) {
     		gameState = 5;
-    	else if(gameState == 5)
-    		gameState = 0;
+    		PVPEndScreenFrameCounter = 0;
+    	}
+    	else if(gameState == 5) {
+    		if(previousGS == 4 && leaderboardScreenFrameCounter >= 50) { // only has 1 sec wait time if came from PVP
+    			gameState = 0;
+    			leaderboardScreenFrameCounter = 0;
+    		}
+    		else if(previousGS != 4) gameState = 0;
+    	}
     }
     public void mouseReleased(MouseEvent e) {}
     public void mouseEntered(MouseEvent e) {
@@ -533,19 +547,27 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 				currentAbility = 2;
 			}
     	}
-    	else if(gameState == 4) 
+    	else if(gameState == 4 && PVPEndScreenFrameCounter >= 50) {
     		gameState = 5;
-    	else if(gameState == 5)
-    		gameState = 0;
+    		PVPEndScreenFrameCounter = 0;
+    	}
+    	else if(gameState == 5) {
+    		if(previousGS == 4 && leaderboardScreenFrameCounter >= 50) { // only has 1 sec wait time if came from PVP
+    			gameState = 0;
+    			leaderboardScreenFrameCounter = 0;
+    		}
+    		else if(previousGS != 4) gameState = 0;
+    	}
+    		
     }
     public void keyReleased(KeyEvent e) {
-			if(gameState == 3) {
-				if(e.getKeyChar() == 'a' || e.getKeyCode() == KeyEvent.VK_LEFT) {
-					aPressed = false;
-				}
-				if(e.getKeyChar() == 'd' || e.getKeyCode() == KeyEvent.VK_RIGHT) {
-					dPressed = false;
-				}
+		if(gameState == 3) {
+			if(e.getKeyChar() == 'a' || e.getKeyCode() == KeyEvent.VK_LEFT) {
+				aPressed = false;
+			}
+			if(e.getKeyChar() == 'd' || e.getKeyCode() == KeyEvent.VK_RIGHT) {
+				dPressed = false;
 			}
 		}
+	}
 }
