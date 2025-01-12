@@ -50,34 +50,22 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     // Player 1 (P1)
     // Tank Selection GS & Leaderboard GS
     public static String P1Name = "";
-    public static String P1Tank = "Titan"; // P1 default tank is Titan
     public static double P1Wins;
     public static double P1Battles;
     public static double P1Winrate;
     // PVP Mode GS
-    public static int P1X = 10; 
-    public static int P1Y = 685;
-    public static boolean P1GoingRight = true;
-    
     public static int P1HP = 100;
     public static int P1Damage;
-    public static boolean P1Dead;
     
     // Player 2 (P2)
     // Tank Selection GS & Leaderboard GS
     public static String P2Name = "";
-    public static String P2Tank = "Mouse"; // P2 default tank is Mouse
     public static double P2Wins;
     public static double P2Battles;
     public static double P2Winrate;
-    // PVP Mode GS
-    public static int P2X = 2310; 
-    public static int P2Y = 685;
-    public static boolean P2GoingRight;
-    
+    // PVP Mode GS  
     public static int P2HP = 100;
     public static int P2Damage;
-    public static boolean P2Dead;
     
     // ! General stats
     // For Tank Selection GS
@@ -89,7 +77,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static boolean isTypingP2;
 
 	// For PVP Mode GS
-	public static boolean PVPFirstEnter;
 	public static Map<String, BufferedImage> tankImages = new HashMap<>();
 	public static int enemyPlayer = 2;
 	
@@ -103,11 +90,11 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static boolean gameOver;
 	
 	// For PVP Methods/shortening code
-	public static int[] playerCoordinatesArr = {P1X, P2X, P1Y, P2Y}; // Use playerCoordinatesArr[currentTurn-1] to get player x,
+	public static int[] playerCoordinatesArr = {10, 2310, 685, 685}; // Use playerCoordinatesArr[currentTurn-1] to get player x,
 	// use playerCoordinatesArr[currentTurn+1] to get player y
-	public static boolean[] playerDirectionArr = {P1GoingRight, P2GoingRight};
+	public static boolean[] playerDirectionArr = {true, false};
 	public static boolean[] playerDeathArr = new boolean[2];
-	public static String[] playerTankArr = new String[2];
+	public static String[] playerTankArr = {"Titan", "Mouse"};
 	public static int tankFlippedLow;
 	
 	// ! abilities  
@@ -123,7 +110,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static int fireIncrement = 10;
 	
     // For PVP End Screen GS
-    public static String winnerPlayer;
+    public static int winnerPlayer;
     public static int PVPEndScreenFrameCounter = 0;
     
     // For PVP Leaderboard Screen GS
@@ -181,7 +168,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	if((mouseX>=710 && mouseX<=1715) && (mouseY>=1015 && mouseY<=1170)) {
         		gameState = 3;
         		mouseReset = true;
-        		PVPFirstEnter = true;
         	}
         }
         else if(gameState == 1){ // Credits GS
@@ -217,9 +203,9 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     				mouseY<=tankSelectLocations.get(tankArr[i]+"Y")+333)) 
         		{
         			if(currentPlayer == 1)
-            			P1Tank = tankArr[i];	
+        				playerTankArr[0] = tankArr[i];	
             		else
-            			P2Tank = tankArr[i];
+            			playerTankArr[1] = tankArr[i];
             	}
         	}	
         	
@@ -227,26 +213,26 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	// P1
         	g.setColor(new Color(255, 255, 255)); // white
         	g.setFont(new Font("Arial", 1, 60));
-        	g.drawString(P1Tank.toUpperCase(), 525, 335);
+        	g.drawString(playerTankArr[0].toUpperCase(), 525, 335);
         	// P2
-        	g.drawString(P2Tank.toUpperCase(), 525, 595);
+        	g.drawString(playerTankArr[1].toUpperCase(), 525, 595);
         	
         	// Indicators/border for tank chosen:
         	g2.setStroke(new BasicStroke(15)); // Setting thickness of border
         	
         	// P1 tanks' markers
     		g2.setColor(new Color(194, 164, 0)); // gold color
-    		g2.drawRect(tankSelectLocations.get(P1Tank+"X")-30, // -30 for a bigger border
-    					tankSelectLocations.get(P1Tank+"Y")-30, 338, 393);
+    		g2.drawRect(tankSelectLocations.get(playerTankArr[0]+"X")-30, // -30 for a bigger border
+    					tankSelectLocations.get(playerTankArr[0]+"Y")-30, 338, 393);
         	// P2 tanks' markers
 			g2.setColor(new Color(225, 74, 61)); // red color
-    		g2.drawRect(tankSelectLocations.get(P2Tank+"X")-30, 
-    					tankSelectLocations.get(P2Tank+"Y")-30, 338, 393);
+    		g2.drawRect(tankSelectLocations.get(playerTankArr[1]+"X")-30, 
+    					tankSelectLocations.get(playerTankArr[1]+"Y")-30, 338, 393);
     		// Checks if both players' tanks are the same, then show special indicator
-    		if(P1Tank == P2Tank) {
+    		if(playerTankArr[0] == playerTankArr[1]) {
     			g2.setColor(new Color(228, 119, 47)); // Orange for both players
-    			g2.drawRect(tankSelectLocations.get(P1Tank+"X")-30,
-        					tankSelectLocations.get(P1Tank+"Y")-30, 338, 393);
+    			g2.drawRect(tankSelectLocations.get(playerTankArr[0]+"X")-30,
+        					tankSelectLocations.get(playerTankArr[0]+"Y")-30, 338, 393);
     		}
 
         	// allow player to choose player name (TODO textfile streaming)
@@ -277,37 +263,24 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 				// ! -------------------------------------------------------------------- PVP Mode GS   --------------------------------------------------------------------
         else if(gameState == 3){ // ! PVP Mode GS
         	g.drawImage(PVPMode, 0, 0, null);
-			if(PVPFirstEnter) {
-				Main.playerCoordinatesArr[0] = Main.P1X;
-		        Main.playerCoordinatesArr[1] = Main.P2X;
-		        Main.playerDirectionArr[0] = Main.P1GoingRight;
-		        Main.playerDirectionArr[1] = Main.P2GoingRight;
-		        PVPFirstEnter = false;
-			}
         	// Player movement	
         	PVPMethods.playerMovement();
         	
-        	// Updates arrays with current variables
-        	playerDeathArr[0] = P1Dead;
-        	playerDeathArr[1] = P2Dead;
-        	playerTankArr[0] = P1Tank;
-        	playerTankArr[1] = P2Tank;
-        	
 			// Drawing P1 tank movement, deaths, & name
-        	g.drawImage(PVPMethods.drawPlayer(1), P1X, P1Y+tankFlippedLow, null);
+        	g.drawImage(PVPMethods.drawPlayer(1), playerCoordinatesArr[0], playerCoordinatesArr[2]+tankFlippedLow, null);
         	// P1 Name
-        	g.setColor(PVPMethods.nameColor(P1Dead)); // Sets color
+        	g.setColor(PVPMethods.nameColor(playerDeathArr[0])); // Sets color
         	g.setFont(new Font("Arial", 1, 50));
-        	g.drawString(PVPMethods.displayName(P1Name, 1), P1X, P1Y-120);
+        	g.drawString(PVPMethods.displayName(P1Name, 1), playerCoordinatesArr[0], playerCoordinatesArr[2]-120);
         	
 			// Drawing P2 tank movement, deaths, & name
-        	g.drawImage(PVPMethods.drawPlayer(2), P2X, P2Y+tankFlippedLow, null);
+        	g.drawImage(PVPMethods.drawPlayer(2), playerCoordinatesArr[1], playerCoordinatesArr[3]+tankFlippedLow, null);
         	// P2 Name
-        	g.setColor(PVPMethods.nameColor(P2Dead));
-        	g.drawString(PVPMethods.displayName(P2Name, 2), P2X, P2Y-120);
+        	g.setColor(PVPMethods.nameColor(playerDeathArr[1]));
+        	g.drawString(PVPMethods.displayName(P2Name, 2), playerCoordinatesArr[1], playerCoordinatesArr[3]-120);
 			
 			// Player deaths
-			if(P1Dead || P2Dead) {
+			if(PVPMethods.deathCheck()) {
 				gameOver = true;
 			}
 			// Fire button
@@ -345,16 +318,16 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			}
 			
 			} else if(currentAbility == 2) { // Note: make some methods for abilities
-				if(P1Tank == "Titan" || P2Tank == "Titan") {
+				if(playerTankArr[0] == "Titan" || playerTankArr[1] == "Titan") {
 					currentAbilityName = "Lighting Strike";
 				}
-				else if(P1Tank == "Mouse" || P2Tank == "Mouse") {
+				else if(playerTankArr[0] == "Mouse" || playerTankArr[1] == "Mouse") {
 					currentAbilityName = "Shrink";
 				}
-				else if(P1Tank == "Ironclad" || P2Tank == "Ironclad") {
+				else if(playerTankArr[0] == "Ironclad" || playerTankArr[1] == "Ironclad") {
 					currentAbilityName = "Damage Reduction";
 				}
-				else if(P1Tank == "Sentinel" || P2Tank == "Sentinel") {
+				else if(playerTankArr[0] == "Sentinel" || playerTankArr[1] == "Sentinel") {
 					currentAbilityName = "Electrogun";
 				}
 			
@@ -371,12 +344,14 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	g.drawImage(PVPEnd, 0, 0, null);
         	previousGS = 4;
         	// Resetting tanks
-        	P2X = 2320; 
-            P2Y = 685;
-            P1X = 0; 
-            P1Y = 685;
-            P1GoingRight = true;
-            P2GoingRight = false;
+        	playerCoordinatesArr[0] = 10;
+        	playerCoordinatesArr[2] = 685;
+        	playerCoordinatesArr[1] = 2310;
+        	playerCoordinatesArr[3] = 685;
+            playerDirectionArr[0] = true;
+            playerDirectionArr[1] = false;
+            playerDeathArr[0] = false;
+            playerDeathArr[1] = false;
         	// General game resets	
 			currentTurn = 1;
 			gameOver = false;
@@ -417,8 +392,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 
 		// Abilities
 		missile 		= ImageIO.read(new File("Abilities/missile.png"));
-		
-		
     	
 		// Maps:
 		// For Tank Selection GS
@@ -535,8 +508,8 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     			currentTurn = (currentTurn == 1)? 2 : 1;
     		}
     		if(e.getKeyChar() == '0') { // dev key for killing both tanks & reviving
-    			P1Dead = !P1Dead;
-    			P2Dead = !P2Dead;
+    			playerDeathArr[0] = !playerDeathArr[0];
+    			playerDeathArr[1] = !playerDeathArr[1];
     			gameOver = !gameOver;
     		}
 

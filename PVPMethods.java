@@ -42,11 +42,6 @@ public class PVPMethods {
     		Main.playerCoordinatesArr[Main.currentTurn-1] += 5;
     		Main.playerDirectionArr[Main.currentTurn-1] = true;
 		}
-    	// Update variables with ones in arrays, so both are equal and interchangeable in usage.
-    	Main.P1X = Main.playerCoordinatesArr[0];
-        Main.P2X = Main.playerCoordinatesArr[1];
-        Main.P1GoingRight = Main.playerDirectionArr[0];
-        Main.P2GoingRight = Main.playerDirectionArr[1];
 	}
 	
 	public static BufferedImage drawPlayer(int generatePlayer) {
@@ -115,6 +110,10 @@ public class PVPMethods {
 				Main.missileX+128 <= Main.playerCoordinatesArr[Main.enemyPlayer-1]+180) {
 			Main.fire = false;
 		}
+	}
+	public static boolean deathCheck() {
+		// Checks if any player is dead
+		return Main.playerDeathArr[0] || Main.playerDeathArr[1];
 	}
 	
 	public static String displayName(String name, int player) {
