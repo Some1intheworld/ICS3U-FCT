@@ -70,9 +70,11 @@ public class PVPMethods {
 	public static void powerRangeDeterminer() {// gg
 		// Determines power of shot. Constantly increases by 10 pixels until 1700 pixels (max range), then decrease by 10 until 0
 		Main.power += Main.increment;
+		Main.powerBarHeight -= 0.2 * (Main.increment);
 		if(Main.power >= 1700) {
 			Main.increment = -10;
 		} else if(Main.power <= 0) Main.increment = 10;
+
 	}
 	public static void missileStartAndDirectionLocate() {
 		// locates start of missile (where the player tank is), keeps that as the start
@@ -81,6 +83,7 @@ public class PVPMethods {
 		Main.missileX = Main.playerCoordinatesArr[Main.currentTurn-1];
 		Main.missileY = Main.playerCoordinatesArr[Main.currentTurn+1]-256;
 		Main.missileXStart = Main.missileX;
+		Main.missileYStart = Main.missileY;
 		Main.missileDirectionRight = Main.playerDirectionArr[Main.currentTurn-1];
 	}
 	public static void missileDirection() {
@@ -101,14 +104,18 @@ public class PVPMethods {
 		if((Main.fire && Main.missileX+128 > Main.missileXStart + Main.power) ||
 				(Main.fire && Main.missileX+128 < Main.missileXStart - Main.power)) {
 			Main.fire = false;
+			Main.fireYIncrement = -4;
+			Main.YIncrementMultiplier = 2;
 		}
-		
+
 	}
 	public static void enemyHitCheck() {
 		// Checks if the middle of missile along its x is within the enemy tank's x range
 		if(Main.fire && Main.missileX+128 >= Main.playerCoordinatesArr[Main.enemyPlayer-1] &&
 				Main.missileX+128 <= Main.playerCoordinatesArr[Main.enemyPlayer-1]+180) {
 			Main.fire = false;
+			Main.fireYIncrement = -4;
+			Main.YIncrementMultiplier = 2;
 		}
 	}
 	public static boolean deathCheck() {
