@@ -100,14 +100,18 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	// ! abilities  
 	public static BufferedImage missile;
 	public static int missileX;
-	public static int missileY;
+	public static int missileY=10000;
 	public static int missileXStart;
+	public static int missileYStart;
 	public static boolean missileDirectionRight = true;
+	public static int powerBarHeight = 0;
 	
 	public static boolean missileStarted;
 	public static int power = 0;
 	public static int increment = 10;
 	public static int fireIncrement = 10;
+	public static int fireYIncrement = -4;
+	public static int YIncrementMultiplier = 2;
 	
     // For PVP End Screen GS
     public static int winnerPlayer;
@@ -263,6 +267,12 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 				// ! -------------------------------------------------------------------- PVP Mode GS   --------------------------------------------------------------------
         else if(gameState == 3){ // ! PVP Mode GS
         	g.drawImage(PVPMode, 0, 0, null);
+        	g.setColor(new Color(250, 250, 250));
+        	g.fillRect(325, 160, 100, 340);    
+        	g.setColor(new Color(255, 214, 0));
+        	g.fillRect(325, 500, 100, powerBarHeight);       	
+        	
+        	
         	// Player movement	
         	PVPMethods.playerMovement();
         	
@@ -285,15 +295,29 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			}
 			// Fire button
 			g.setColor(new Color(0, 0, 0));
-			g.setFont(new Font("Arial", 1, 50));
+			g.setFont(new Font("Arial", 1, 30));
 			g.drawString(currentAbilityName, 1795, 105);
-			g.drawString(power +"", 400, 400);
+			g.drawString(power +"", 342, 347);
+			g.setFont(new Font("Courier", 1, 30));
+			g.setColor(new Color(255, 214, 0));
+			g.drawString("Power", 331, 140);
+			
+			g.drawString(missileY + "", 600, 140);
+			
+			g.drawString(Main.missileYStart - (Main.power / 20) +"", 600, 500);
 			if(mouseX >= 2078 && mouseX <= 2269 && mouseY >= 933 && mouseY <= 1124) {
 				g.drawString(currentAbility + "", 100, 100);
 				fire = true;
 				missileStarted = true;
 				mouseX = 0;
 				mouseY = 0;
+			}
+			if(fire && (missileY < 50)) {
+				fireYIncrement = 4;
+			}
+			if(Main.fire && (Main.missileY < Main.missileYStart - (Main.power / 2))) {
+				Main.fireYIncrement = 4;
+				YIncrementMultiplier *= YIncrementMultiplier;
 			}
 			// ! ======== Shooting / Abilities mechanics =======
 			enemyPlayer = (currentTurn == 1)? 2 : 1;
@@ -311,6 +335,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 				if(fire) { // Opened fire
 					g.drawImage(missile, missileX, missileY, null);
 					missileX += fireIncrement;
+					missileY += fireYIncrement * YIncrementMultiplier;
 					PVPMethods.missilePowerCheck();
 					PVPMethods.enemyHitCheck();
 				} 
