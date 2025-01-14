@@ -71,51 +71,53 @@ public class PVPMethods {
 		// Determines power of shot. Constantly increases by 10 pixels until 1700 pixels (max range), then decrease by 10 until 0
 		Main.power += Main.increment;
 		Main.powerBarHeight -= 0.2 * (Main.increment);
+		Main.velocity = Main.power / 2;
 		if(Main.power >= 1700) {
 			Main.increment = -10;
 		} else if(Main.power <= 0) Main.increment = 10;
 
 	}
-	public static void missileStartAndDirectionLocate() {
-		// locates start of missile (where the player tank is), keeps that as the start
+	public static void bombStartAndDirectionLocate() {
+		// locates start of bomb (where the player tank is), keeps that as the start
 		// even if player moves, and keeps the same fire direction even if player turns.
 		// Gets direction
-		Main.missileX = Main.playerCoordinatesArr[Main.currentTurn-1];
-		Main.missileY = Main.playerCoordinatesArr[Main.currentTurn+1]-256;
-		Main.missileXStart = Main.missileX;
-		Main.missileYStart = Main.missileY;
-		Main.missileDirectionRight = Main.playerDirectionArr[Main.currentTurn-1];
+		Main.bombX = Main.playerCoordinatesArr[Main.currentTurn-1];
+		Main.bombY = Main.playerCoordinatesArr[Main.currentTurn+1]-256;
+		Main.bombXStart = Main.bombX;
+		Main.bombYStart = Main.bombY;
+		Main.bombDirectionRight = Main.playerDirectionArr[Main.currentTurn-1];
 	}
-	public static void missileDirection() {
-		// Determines fireIncrement for direction of missile (moving left or right),
-		// direction obtained from missileStartAndDirectionLocate().
+	public static void bombDirection() {
+		// Determines fireIncrement for direction of bomb (moving left or right),
+		// direction obtained from bombStartAndDirectionLocate().
 		// Executes direction through fireIncrement
-		if(Main.missileDirectionRight) { // tank facing right when fired
+		if(Main.bombDirectionRight) { // tank facing right when fired
 			Main.fireIncrement = 10;
 		}
 		else{ // Tank facing left when fired
 			Main.fireIncrement = -10;
 		}
 	}
-	public static void missilePowerCheck() {
-		// Checks if the missile is out of power from the power determined in powerRangeDeterminer()
-		// Checks both the forward distance and backwards distance as missile can be shot
+	public static void bombPowerCheck() {
+		// Checks if the bomb is out of power from the power determined in powerRangeDeterminer()
+		// Checks both the forward distance and backwards distance as bomb can be shot
 		// both ways
-		if((Main.fire && Main.missileX+128 > Main.missileXStart + Main.power) ||
-				(Main.fire && Main.missileX+128 < Main.missileXStart - Main.power)) {
+		if((Main.fire && Main.bombX+128 > Main.bombXStart + Main.power) ||
+				(Main.fire && Main.bombX+128 < Main.bombXStart - Main.power)) {
 			Main.fire = false;
 			Main.fireYIncrement = -4;
-			Main.YIncrementMultiplier = 2;
+			Main.velocity = -40;
 		}
 
 	}
 	public static void enemyHitCheck() {
-		// Checks if the middle of missile along its x is within the enemy tank's x range
-		if(Main.fire && Main.missileX+128 >= Main.playerCoordinatesArr[Main.enemyPlayer-1] &&
-				Main.missileX+128 <= Main.playerCoordinatesArr[Main.enemyPlayer-1]+180) {
+		// Checks if the middle of bomb along its x is within the enemy tank's x range
+		if((Main.fire && Main.bombX+128 >= Main.playerCoordinatesArr[Main.enemyPlayer-1] &&
+				Main.bombX+128 <= Main.playerCoordinatesArr[Main.enemyPlayer-1]+180)) {
 			Main.fire = false;
 			Main.fireYIncrement = -4;
-			Main.YIncrementMultiplier = 2;
+			Main.velocity = -50;
+	
 		}
 	}
 	public static boolean deathCheck() {
