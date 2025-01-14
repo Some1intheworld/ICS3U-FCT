@@ -98,20 +98,22 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static int tankFlippedLow;
 	
 	// ! abilities  
-	public static BufferedImage missile;
-	public static int missileX;
-	public static int missileY=10000;
-	public static int missileXStart;
-	public static int missileYStart;
-	public static boolean missileDirectionRight = true;
+	public static Map<String, Object> weapon1Properties = new HashMap<>();
+	public static BufferedImage bomb;
+	public static int bombX;
+	public static int bombY=10000;
+	public static int bombXStart;
+	public static int bombYStart;
+	public static boolean bombDirectionRight = true;
 	public static int powerBarHeight = 0;
 	
-	public static boolean missileStarted;
+	public static boolean bombStarted;
 	public static int power = 0;
 	public static int increment = 10;
 	public static int fireIncrement = 10;
 	public static int fireYIncrement = -4;
-	public static int YIncrementMultiplier = 2;
+	public static int velocity = -50;
+	public static int gravity = 2;
 	
     // For PVP End Screen GS
     public static int winnerPlayer;
@@ -250,6 +252,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 				isTypingP2 = true;
 				g2.setColor(new Color(225, 74, 61));
         		g2.drawRect(596, 661, 552, 93);
+        		
 			}
 			// Exiting
 			if(!(mouseX >= 600 && mouseX <= 1143 && mouseY >= 400 && mouseY <= 485)) {
@@ -300,43 +303,47 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			g.drawString(power +"", 342, 347);
 			g.setFont(new Font("Courier", 1, 30));
 			g.setColor(new Color(255, 214, 0));
-			g.drawString("Power", 331, 140);
+			g.drawString(velocity +"", 331, 140);
 			
-			g.drawString(missileY + "", 600, 140);
+			g.drawString(bombY + "", 600, 140);
 			
-			g.drawString(Main.missileYStart - (Main.power / 20) +"", 600, 500);
+			g.drawString(Main.bombYStart - (Main.power / 2) +"", 600, 500);
 			if(mouseX >= 2078 && mouseX <= 2269 && mouseY >= 933 && mouseY <= 1124) {
 				g.drawString(currentAbility + "", 100, 100);
 				fire = true;
-				missileStarted = true;
+				bombStarted = true;
 				mouseX = 0;
 				mouseY = 0;
 			}
-			if(fire && (missileY < 50)) {
+			if(fire && (bombY < 50)) {
 				fireYIncrement = 4;
 			}
-			if(Main.fire && (Main.missileY < Main.missileYStart - (Main.power / 2))) {
+			if(Main.fire && (Main.bombY < Main.bombYStart - (Main.power / 2))) {
 				Main.fireYIncrement = 4;
-				YIncrementMultiplier *= YIncrementMultiplier;
+//				YIncrementMultiplier *= YIncrementMultiplier;
 			}
 			// ! ======== Shooting / Abilities mechanics =======
 			enemyPlayer = (currentTurn == 1)? 2 : 1;
 			if(!fire) {
 				PVPMethods.powerRangeDeterminer();
+				velocity = -40;
 			}
-			if(missileStarted) { 
-				PVPMethods.missileStartAndDirectionLocate();
-				missileStarted = false;
+			if(bombStarted) { 
+				PVPMethods.bombStartAndDirectionLocate();
+				bombStarted = false;
 			}
+
+
 			
 			if(currentAbility == 1) {
-				currentAbilityName = "Missile";
-				PVPMethods.missileDirection();
+				currentAbilityName = "bomb";
+				PVPMethods.bombDirection();
 				if(fire) { // Opened fire
-					g.drawImage(missile, missileX, missileY, null);
-					missileX += fireIncrement;
-					missileY += fireYIncrement * YIncrementMultiplier;
-					PVPMethods.missilePowerCheck();
+					g.drawImage(bomb, bombX, bombY, null);
+					bombX += fireIncrement;
+					bombY += velocity;
+					velocity += gravity;
+					PVPMethods.bombPowerCheck();
 					PVPMethods.enemyHitCheck();
 				} 
 				
@@ -361,7 +368,9 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			
 			// PVP Pause screen
         	if(isPaused) { 
-        		g.drawImage(PVPPause, 0, 0, null);
+            	Graphics2D g2 = (Graphics2D) g.create();
+        		g2.setColor(new Color(0, 0, 0, 150)); // Changes transparency
+        		g2.drawImage(PVPPause, 0, 0, null);
         		// TODO lock controls during pause
         	}
         
@@ -416,8 +425,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 		rock 			= ImageIO.read(new File("Obstacles/rock.png"));
 
 		// Abilities
-		missile 		= ImageIO.read(new File("Abilities/missile.png"));
-    	
+    	bomb 			= ImageIO.read(new File("Abilities/bomb.png"));
 		// Maps:
 		// For Tank Selection GS
     	tankSelectLocations.put("TitanX", 1535);
@@ -435,6 +443,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 		tankImages.put("IroncladTank", ironcladTank);
 		tankImages.put("SentinelTank", sentinelTank);
 
+		//weapon1Properties.put("BombX", );
 		
 		
 		
