@@ -32,15 +32,15 @@ public class PVPMethods {
     }
 	
 	public static void playerMovement() {
-		// Moves players using the respective arrays of their coordinates and direction
-		// based on which turn it is (-1 due to array index starting at 0)
+		// Moves players using their coordinates and direction from playerStats map
+		// based on which turn it is 
 		if(Main.aPressed) {
-    		Main.playerCoordinatesArr[Main.currentTurn-1] -= 5;
-    		Main.playerDirectionArr[Main.currentTurn-1] = false;
+			Main.playerStats.put(Main.currentTurn+"X", (int)Main.playerStats.get(Main.currentTurn+"X") - 5);
+    		Main.playerStats.put(Main.currentTurn+"GoingRight", false);
     	}
     	if(Main.dPressed) {
-    		Main.playerCoordinatesArr[Main.currentTurn-1] += 5;
-    		Main.playerDirectionArr[Main.currentTurn-1] = true;
+    		Main.playerStats.put(Main.currentTurn+"X", (int)Main.playerStats.get(Main.currentTurn+"X") + 5);
+    		Main.playerStats.put(Main.currentTurn+"GoingRight", true);
 		}
 	}
 	
@@ -48,20 +48,20 @@ public class PVPMethods {
 		// Generates players' tanks, whether facing right, left, or flipped in those orientations
 		BufferedImage drawnImage = new BufferedImage(180, 134, BufferedImage.TYPE_INT_RGB);
 		
-		if(Main.playerDeathArr[generatePlayer-1] && Main.playerDirectionArr[generatePlayer-1]) { // P1 death flip facing right
-			drawnImage = flipImageVertical(flipImageHorizontal(Main.tankImages.get(Main.playerTankArr[generatePlayer-1]+"Tank")));
+		if((Boolean)Main.playerStats.get(generatePlayer+"Dead") && (Boolean)Main.playerStats.get(generatePlayer+"GoingRight")) { // P1 death flip facing right
+			drawnImage = flipImageVertical(flipImageHorizontal(Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank"))));
 			Main.tankFlippedLow = 25;
 		}
-		else if (Main.playerDeathArr[generatePlayer-1]) { // death facing left
-			drawnImage = flipImageVertical(Main.tankImages.get(Main.playerTankArr[generatePlayer-1]+"Tank"));
+		else if ((Boolean)Main.playerStats.get(generatePlayer+"Dead")) { // death facing left
+			drawnImage = flipImageVertical(Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank")));
 			Main.tankFlippedLow = 25;
 		}
-		else if(Main.playerDirectionArr[generatePlayer-1]) { // Alive facing right
-			drawnImage = flipImageHorizontal(Main.tankImages.get(Main.playerTankArr[generatePlayer-1]+"Tank"));
+		else if((Boolean)Main.playerStats.get(generatePlayer+"GoingRight")) { // Alive facing right
+			drawnImage = flipImageHorizontal(Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank")));
 			Main.tankFlippedLow = 0;
 		}
 		else { // Alive facing left
-			drawnImage = Main.tankImages.get(Main.playerTankArr[generatePlayer-1]+"Tank");
+			drawnImage = Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank"));
 			Main.tankFlippedLow = 0;
 		}
 		return drawnImage;	
@@ -71,7 +71,6 @@ public class PVPMethods {
 		// Determines power of shot. Constantly increases by 10 pixels until 1700 pixels (max range), then decrease by 10 until 0
 		Main.power += Main.increment;
 		Main.powerBarHeight -= 0.2 * (Main.increment);
-		Main.velocity = Main.power / 2;
 		if(Main.power >= 1700) {
 			Main.increment = -10;
 		} else if(Main.power <= 0) Main.increment = 10;
@@ -81,11 +80,11 @@ public class PVPMethods {
 		// locates start of bomb (where the player tank is), keeps that as the start
 		// even if player moves, and keeps the same fire direction even if player turns.
 		// Gets direction
-		Main.bombX = Main.playerCoordinatesArr[Main.currentTurn-1];
-		Main.bombY = Main.playerCoordinatesArr[Main.currentTurn+1]-256;
+		Main.bombX = (int)Main.playerStats.get(Main.currentTurn+"X");
+		Main.bombY = (int)Main.playerStats.get(Main.currentTurn+"Y")-256;
 		Main.bombXStart = Main.bombX;
 		Main.bombYStart = Main.bombY;
-		Main.bombDirectionRight = Main.playerDirectionArr[Main.currentTurn-1];
+		Main.bombDirectionRight = (Boolean)Main.playerStats.get(Main.currentTurn+"GoingRight");
 	}
 	public static void bombDirection() {
 		// Determines fireIncrement for direction of bomb (moving left or right),
@@ -106,23 +105,25 @@ public class PVPMethods {
 				(Main.fire && Main.bombX+128 < Main.bombXStart - Main.power)) {
 			Main.fire = false;
 			Main.fireYIncrement = -4;
-			Main.velocity = -40;
 		}
 
 	}
 	public static void enemyHitCheck() {
-		// Checks if the middle of bomb along its x is within the enemy tank's x range
-		if((Main.fire && Main.bombX+128 >= Main.playerCoordinatesArr[Main.enemyPlayer-1] &&
-				Main.bombX+128 <= Main.playerCoordinatesArr[Main.enemyPlayer-1]+180)) {
+		// Bomb collision
+		if(Main.fire && !(Main.bombX<=(int)Main.playerStats.get(Main.enemyPlayer+"X") ||
+			Main.bombX+120>=(int)Main.playerStats.get(Main.enemyPlayer+"X")+180 ||
+			Main.bombY>=(int)Main.playerStats.get(Main.enemyPlayer+"Y")+134 ||
+			Main.bombY<=(int)Main.playerStats.get(Main.enemyPlayer+"Y")))
+		{
 			Main.fire = false;
 			Main.fireYIncrement = -4;
-			Main.velocity = -50;
 	
 		}
+		
 	}
 	public static boolean deathCheck() {
 		// Checks if any player is dead
-		return Main.playerDeathArr[0] || Main.playerDeathArr[1];
+		return (Boolean)Main.playerStats.get("1Dead") || (Boolean)Main.playerStats.get("1Dead");
 	}
 	
 	public static String displayName(String name, int player) {
@@ -134,5 +135,8 @@ public class PVPMethods {
 		// returns red color for name if player is dead, white otherwise
 		if(dead) return new Color(216, 75, 61);
 		return new Color(255, 255, 255);
+	}
+	public static void velocityDeterminer(){
+		Main.velocity = 100;
 	}
 }
