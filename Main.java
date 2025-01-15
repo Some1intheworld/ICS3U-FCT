@@ -55,7 +55,10 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     public static double P1Battles;
     public static double P1Winrate;
     // PVP Mode GS 
-    public static int P1Damage;
+    public static int baseDamage = 10;
+    public static int P1Health = 100;
+    public static int P2Health = 100;
+
     
     
     // Player 2 (P2)
@@ -65,7 +68,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     public static double P2Battles;
     public static double P2Winrate;
     // PVP Mode GS  
-    public static int P2Damage;
     
     // ! General stats
     // For Tank Selection GS
@@ -86,6 +88,9 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static boolean aPressed;
 	public static boolean dPressed;
 	public static boolean fire;
+	public static boolean lighting;
+	public static int lightingAffected;
+	public static int speed = 10;
 	
 	public static boolean gameOver;
 	
@@ -280,26 +285,27 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	// P2 Name
         	g.setColor(PVPMethods.nameColor((Boolean)playerStats.get("2Dead")));
         	g.drawString(PVPMethods.displayName(P2Name, 2), (int)playerStats.get("2X"), (int)playerStats.get("2Y")-120);
+			g.setColor(new Color(150, 0, 0));
+			g.fillRect(500, 20, P1Health*6-51, 104);
+        	g.fillRect(2060, 20, -P2Health *6+51, 104);
+        	g.setColor(new Color(0, 0, 0));
+			g.drawString(P1Health +"", 683, 90);
+			g.drawString(P2Health + "", 1792, 90);
 			
 			// Player deaths
 			if(PVPMethods.deathCheck()) {
 				gameOver = true;
 			}
 			// Fire button
+			g.drawString(currentAbilityName, 1720, 1050);
 			g.setColor(new Color(0, 0, 0));
 			g.setFont(new Font("Arial", 1, 30));
-			g.drawString(currentAbilityName, 1795, 105);
-			g.drawString(power +"", 342, 347);
 			g.setFont(new Font("Courier", 1, 30));
 			g.setColor(new Color(100, 242, 0));
-			g.drawString(velocity +"", 331, 140);
-			g.setColor(new Color(200, 242, 0));
 			
-			g.drawString(bombY + "", 600, 140);
 			
 			g.drawString(Main.bombYStart - (Main.power / 2) +"", 600, 500);
 			if(mouseX >= 2078 && mouseX <= 2269 && mouseY >= 933 && mouseY <= 1124) {
-				g.drawString(currentAbility + "", 100, 100);
 				fire = true;
 				bombStarted = true;
 				mouseX = 0;
@@ -329,6 +335,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 				currentAbilityName = "bomb";
 				PVPMethods.bombDirection();
 				if(fire) { // Opened fire
+					
 					g.drawImage(bomb, bombX, bombY, null);
 					bombX += fireIncrement;
 					bombY += velocity;
@@ -337,9 +344,8 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 					PVPMethods.enemyHitCheck();
 				} 
 				
-			}
-			
-			} else if(currentAbility == 2) { // Note: make some methods for abilities
+			} else if(currentAbility == 2) {
+				// Change ability name
 				if(playerStats.get("1Tank") == "Titan" || playerStats.get("2Tank") == "Titan") {
 					currentAbilityName = "Lighting Strike";
 				}
@@ -352,6 +358,27 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 				else if(playerStats.get("1Tank") == "Sentinel" || playerStats.get("2Tank") == "Sentinel") {
 					currentAbilityName = "Electrogun";
 				}
+				
+				// --- Lighting Strike ---
+				// TODO: Make it so that only Titan can use it
+				PointerInfo a = MouseInfo.getPointerInfo();
+				Point b = a.getLocation();
+				g.drawOval((int) b.getX() - 2020, 800, 200, 100);
+				if(lighting) { // lighting strike
+					if(((int) playerStats.get(enemyPlayer+"X") >=(int) b.getX()-2020 &&
+					   (int) playerStats.get(enemyPlayer+"X") <=(int) b.getX()-2020+200) ||
+					   ((int) playerStats.get(enemyPlayer+"X")+180 >=(int) b.getX()-2020) && 
+					   (int) playerStats.get(enemyPlayer+"X") <=(int) b.getX()-2020){
+						speed = 2;
+						baseDamage = 5;
+						PVPMethods.dealDamage(baseDamage);
+					}
+					g.fillRect((int) b.getX()-2020, 0, 200, 1000);
+					lighting = false;
+					lightingAffected = enemyPlayer;
+					PVPMethods.changeTurns();
+				}
+			}
 			
 			}
 		
@@ -538,15 +565,23 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			if((e.getKeyChar() == 'd' || e.getKeyCode() == KeyEvent.VK_RIGHT) && !isPaused && !gameOver) {
 				dPressed = true;
 			}
-			if(e.getKeyCode() == 32){
-				fire = true;
+			if(e.getKeyChar() == 32) {
+				if(currentAbility == 1) {
+					fire = true;
+					bombStarted = true;
+					mouseX = 0;
+					mouseY = 0;
+				} else if(currentAbility == 2) {
+					lighting = true;
+				}
+
 			}
 			// Dev keys
     		if(e.getKeyChar() == '=') { // dev key for finishing in PVP mode
     			gameState = 4;
     		}
     		if(e.getKeyChar() == '/') { // dev key for player turn switch
-    			currentTurn = (currentTurn == 1)? 2 : 1;
+    			PVPMethods.changeTurns();
     		}
     		if(e.getKeyChar() == '0') { // dev key for killing both tanks & reviving
     			playerStats.put("1Dead", !(Boolean)playerStats.get("1Dead"));
@@ -560,6 +595,8 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			if(e.getKeyChar() == '2'){
 				currentAbility = 2;
 			}
+			
+
     	}
     	else if(gameState == 4 && PVPEndScreenFrameCounter >= 50) {
     		gameState = 5;
