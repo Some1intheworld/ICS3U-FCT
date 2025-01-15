@@ -121,6 +121,10 @@ public class PVPMethods {
 		}
 		
 	}
+	
+	public static void dead() {
+
+	}
 	public static boolean deathCheck() {
 		// Checks if any player is dead
 		return (Boolean)Main.playerStats.get("1Dead") || (Boolean)Main.playerStats.get("1Dead");
@@ -144,14 +148,16 @@ public class PVPMethods {
 	}
 	
 	public static void changeTurns() {
+		Main.currentAbility = 1;
+		Main.timer = 0;
 		if(Main.currentTurn == 1) {
-			if(Main.lightingAffected == 1) {
-				Main.speed = 5;
+			if(Main.affected == 1) {
+				Main.speed = 6;
 				Main.baseDamage = 10;
 			}
 		} else if(Main.currentTurn == 2) {
-			if(Main.lightingAffected == 2) {
-				Main.speed = 5;
+			if(Main.affected == 2) {
+				Main.speed = 6;
 				Main.baseDamage = 10;
 			}
 		}
