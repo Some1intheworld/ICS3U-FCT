@@ -35,11 +35,11 @@ public class PVPMethods {
 		// Moves players using their coordinates and direction from playerStats map
 		// based on which turn it is 
 		if(Main.aPressed) {
-			Main.playerStats.put(Main.currentTurn+"X", (int)Main.playerStats.get(Main.currentTurn+"X") - 5);
+			Main.playerStats.put(Main.currentTurn+"X", (int)Main.playerStats.get(Main.currentTurn+"X") - Main.speed);
     		Main.playerStats.put(Main.currentTurn+"GoingRight", false);
     	}
     	if(Main.dPressed) {
-    		Main.playerStats.put(Main.currentTurn+"X", (int)Main.playerStats.get(Main.currentTurn+"X") + 5);
+    		Main.playerStats.put(Main.currentTurn+"X", (int)Main.playerStats.get(Main.currentTurn+"X") + Main.speed);
     		Main.playerStats.put(Main.currentTurn+"GoingRight", true);
 		}
 	}
@@ -139,4 +139,30 @@ public class PVPMethods {
 	public static void velocityDeterminer(){
 		Main.velocity = 100;
 	}
+	
+	public static void lighting() {
+	}
+	
+	public static void changeTurns() {
+		if(Main.currentTurn == 1) {
+			if(Main.lightingAffected == 1) {
+				Main.speed = 5;
+				Main.baseDamage = 10;
+			}
+		} else if(Main.currentTurn == 2) {
+			if(Main.lightingAffected == 2) {
+				Main.speed = 5;
+				Main.baseDamage = 10;
+			}
+		}
+		Main.currentTurn = (Main.currentTurn == 1)? 2 : 1;
+	}
+	public static void dealDamage(int damage) {
+		if(Main.currentTurn == 1) {
+			Main.P2Health -= damage;
+		} else {
+			Main.P1Health -= damage;
+		}
+	}
 }
+
