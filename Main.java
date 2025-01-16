@@ -35,6 +35,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     public static BufferedImage ironcladTank;
     public static BufferedImage mouseTank;
     public static BufferedImage sentinelTank;
+    public static BufferedImage mouseTankMini;
 
 	// Objects Images
 	public static BufferedImage crate;
@@ -55,11 +56,12 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     public static double P1Wins;
     public static double P1Battles;
     public static double P1Winrate;
-    public static int P1Size;
+    public static String P1Size= "normal";
     // PVP Mode GS 
     public static int baseDamage = 10;
-    public static int P1Health = 100;
-    public static int P2Health = 100;
+	/*
+	 * public static int P1Health = 100; public static int P2Health = 100;
+	 */
 
     
     
@@ -69,7 +71,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     public static double P2Wins;
     public static double P2Battles;
     public static double P2Winrate;
-    public static int P2Size;
+    public static String P2Size;
     // PVP Mode GS  
     
     // ! General stats
@@ -102,6 +104,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static int tankFlippedLow;
 	public static int timer = 0;
 	public static int frameCounter = 0;
+	public static int deathFrameCounter;
 	
 	// ! abilities  
 	public static Map<String, Object> weapon1Properties = new HashMap<>();
@@ -112,7 +115,13 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static int bombYStart;
 	public static boolean bombDirectionRight = true;
 	public static int powerBarHeight = 0;
+	
 	public static int electrogunLength = 0;
+	public static int electrogunStartX;
+	public static int electrogunStartY;
+	public static boolean electrogunInitiated;
+	
+	public static boolean damageReductionDone;
 	
 	public static boolean bombStarted;
 	public static int power = 0;
@@ -125,6 +134,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	
     // For PVP End Screen GS
     public static int winnerPlayer;
+    public static int loserPlayer;
     public static int PVPEndScreenFrameCounter = 0;
     
     // For PVP Leaderboard Screen GS
@@ -273,6 +283,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 				// ! -------------------------------------------------------------------- PVP Mode GS   --------------------------------------------------------------------
         else if(gameState == 3){ // ! PVP Mode GS
         	g.drawImage(PVPMode, 0, 0, null);
+        	
         	g.setColor(new Color(250, 250, 250));
         	g.fillRect(325, 160, 100, 340);    
         	g.setColor(new Color(255, 214, 0));
@@ -280,60 +291,50 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	g.setColor(new Color(0, 0, 0));
         	g.setFont(new Font("Arial", 1, 40));
         	g.drawString(power+"", 330, 350);
-        	g.setColor(new Color(255, 255, 255));
+        	g.setColor(new Color(0, 0, 0));
         	g.setFont(new Font("Arial", 1, 50));
-        	g.drawString("Time left: " + (10 - (timer /50))+"", 1110, 90);
+        	g.drawString("Time left: " + (15 - (timer /50))+"", 1130, 110);
         	
         	
         	// Timer
-        	if(timer >= 500) {
+        	if(timer >= 750) {
         		PVPMethods.changeTurns();
         		timer = 0;
         	}
         	timer ++;
         	
         	// Check if dead
-    		if(P1Health <= 0) {
-    			gameState = 4;
-    			winnerPlayer = 2;
-    		}
-    		else if(P2Health <= 0) {
-    			gameState = 4;
-    			winnerPlayer = 1;
-    		}
+        	PVPMethods.deathCheck();
         	
         	// Player movement	
         	PVPMethods.playerMovement();
         	
 			// Drawing P1 tank movement, deaths, & name
-        	g.drawImage(PVPMethods.drawPlayer(1), (int)playerStats.get("1X"), (int)playerStats.get("1Y")+tankFlippedLow, null);
-        	// P1 Name
-        	g.setColor(PVPMethods.nameColor((Boolean)playerStats.get("1Dead"))); // Sets color
-        	if(currentTurn == 1) g.setColor(new Color(5, 217, 255));
-        	g.setFont(new Font("Arial", 1, 50));
-        	g.drawString(PVPMethods.displayName(P1Name, 1), (int)playerStats.get("1X"), (int)playerStats.get("1Y")-120);
-        	
-			// Drawing P2 tank movement, deaths, & name
-        	g.drawImage(PVPMethods.drawPlayer(2), (int)playerStats.get("2X"), (int)playerStats.get("2Y")+tankFlippedLow, null);
-        	// P2 Name
-        	g.setColor(PVPMethods.nameColor((Boolean)playerStats.get("2Dead")));
-        	if(currentTurn == 2) g.setColor(new Color(5, 217, 255));
-        	g.drawString(PVPMethods.displayName(P2Name, 2), (int)playerStats.get("2X"), (int)playerStats.get("2Y")-120);
-			g.setColor(new Color(150, 0, 0));
-			g.fillRect(500, 21, P1Health*6-51, 104);
-        	g.fillRect(2060, 21, -P2Health *6+51, 104);
-        	g.setColor(new Color(0, 0, 0));
-			g.drawString(P1Health +"", 683, 90);
-			g.drawString(P2Health + "", 1792, 90);
+			g.drawImage(PVPMethods.drawPlayerMouse(1), (int)playerStats.get("1X"), (int)playerStats.get("1Y")+tankFlippedLow, null);
+			// P1 Name
+			g.setColor(PVPMethods.nameColor((Boolean)playerStats.get("1Dead"))); // Sets color
+			if(!gameOver && currentTurn == 1) g.setColor(new Color(159, 27, 255));
+			g.setFont(new Font("Arial", 1, 50));
+			g.drawString(PVPMethods.displayName(P1Name, 1), (int)playerStats.get("1X"), (int)playerStats.get("1Y")-120);
 			
-			// Player deaths
-//			if(PVPMethods.deathCheck()) {
-//				gameOver = true;
-//				gameState = 4;
-//			}
-//			
+			// Drawing P2 tank movement, deaths, & name
+			g.drawImage(PVPMethods.drawPlayer(2), (int)playerStats.get("2X"), (int)playerStats.get("2Y")+tankFlippedLow, null);
+			// P2 Name
+			g.setColor(PVPMethods.nameColor((Boolean)playerStats.get("2Dead")));
+			if(!gameOver && currentTurn == 2) g.setColor(new Color(159, 27, 255));
+			g.drawString(PVPMethods.displayName(P2Name, 2), (int)playerStats.get("2X"), (int)playerStats.get("2Y")-120);
+			
+			
+			// HP:
+        	g.setColor(new Color(150, 0, 0));
+			g.fillRect(500, 21, (int)playerStats.get("1HP")*6-51, 104);
+        	g.fillRect(2060, 21, -(int)playerStats.get("2HP") *6+51, 104);
+        	g.setColor(new Color(0, 0, 0));
+			g.drawString((int)playerStats.get("1HP") +"", 683, 90);
+			g.drawString((int)playerStats.get("2HP") + "", 1792, 90);
+					
 			// Fire button
-			g.drawString(currentAbilityName, 1720, 1050);
+			g.drawString(currentAbilityName, 1720, 1080);
 			g.setColor(new Color(0, 0, 0));
 			g.setFont(new Font("Arial", 1, 30));
 			g.setFont(new Font("Courier", 1, 30));
@@ -342,12 +343,12 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			
 			
 			g.drawString(Main.bombYStart - (Main.power / 2) +"", 600, 500);
-			if(mouseX >= 2078 && mouseX <= 2269 && mouseY >= 933 && mouseY <= 1124) {
+			/*if(!isPaused && mouseX >= 2078 && mouseX <= 2269 && mouseY >= 933 && mouseY <= 1124) {
 				fire = true;
 				bombStarted = true;
 				mouseX = 0;
 				mouseY = 0;
-			}
+			}*/
 			if(fire && (bombY < 50)) {
 				fireYIncrement = 4;
 			}
@@ -372,8 +373,8 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 				currentAbilityName = "bomb";
 				PVPMethods.bombDirection();
 				if(fire) { // Opened fire
-					
 					g.drawImage(bomb, bombX, bombY, null);
+					baseDamage = 10;
 					bombX += fireIncrement;
 					bombY += velocity;
 					velocity += gravity;
@@ -381,86 +382,97 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 					PVPMethods.enemyHitCheck();
 				} 
 				
-			} else if(currentAbility == 2) {
-				// Change ability name
-				if(playerStats.get("1Tank") == "Titan" || playerStats.get("2Tank") == "Titan") {
-					currentAbilityName = "Lighting Strike";
-				}
-				else if(playerStats.get("1Tank") == "Mouse" || playerStats.get("2Tank") == "Mouse") {
-					currentAbilityName = "Shrink";
-				}
-				else if(playerStats.get("1Tank") == "Ironclad" || playerStats.get("2Tank") == "Ironclad") {
-					currentAbilityName = "Damage Reduction";
-				}
-				else if(playerStats.get("1Tank") == "Sentinel" || playerStats.get("2Tank") == "Sentinel") {
-					currentAbilityName = "Electrogun";
-				}
-				
-				// ------ Titan Lighting Strike -------
+			} else if(currentAbility == 2) {	
+				// ------ Titan Lighting Strike -------JJ
 				if(playerStats.get(currentTurn+"Tank") == "Titan") {
+					currentAbilityName = "Lighting Strike";
 					PointerInfo a = MouseInfo.getPointerInfo();
 					Point b = a.getLocation();
-					g.drawOval((int) b.getX(), 800, 200, 100);
+					g.drawOval((int) b.getX()-100, 850, 200, 100);
 					if(activated) { // lighting strike
-						if(((int) playerStats.get(enemyPlayer+"X") >=(int) b.getX() &&
-						   (int) playerStats.get(enemyPlayer+"X") <=(int) b.getX()+200) ||
-						   ((int) playerStats.get(enemyPlayer+"X")+180 >=(int) b.getX()) && 
-						   (int) playerStats.get(enemyPlayer+"X") <=(int) b.getX()){		
+						if(!((int) playerStats.get(enemyPlayer+"X") >=(int) b.getX()+100 ||
+						   (int) playerStats.get(enemyPlayer+"X")+180 <=(int) b.getX()-100)){		
 							PVPMethods.dealDamage(baseDamage);
 							speed = 2;
-							baseDamage = 5;
+							baseDamage = 6;
 							affected = enemyPlayer;
 						}
-						g.fillRect((int) b.getX(), 0, 200, 1000);
-						PVPMethods.changeTurns();
+						g.fillRect((int) b.getX()-100, 0, 200, 1000);
 						activated = false;
+						PVPMethods.changeTurns();
+						
 					}
 				}
 				
 				// ------ Ironclad Damage Reduction -------
-				if(playerStats.get(currentTurn+"Tank") == "Ironclad") {
+				else if(playerStats.get(currentTurn+"Tank") == "Ironclad") {
+					currentAbilityName = "Damage Reduction";
 					if(activated) {
 						frameCounter += 1;
-						baseDamage /= 2;
+						if(!damageReductionDone) {
+							baseDamage /= 2;
+							damageReductionDone = true;
+						}
 						affected = enemyPlayer;
 						g.drawImage(shield, 700, 550, null);
 						if(frameCounter == 30) {
 							activated = false;
 							frameCounter = 0;
 							PVPMethods.changeTurns();
+							damageReductionDone = false;
 						}
 						
 					}
 				}
 				
 				// ------- Mouse Shrink -------
-				if(playerStats.get(currentTurn+"Tank") == "Mouse") {
+				else if(playerStats.get(currentTurn+"Tank") == "Mouse") {
+					currentAbilityName = "Shrink";
 					if(activated) {
-						if(currentTurn == 1) P1Size /= 2;
-						else if(currentTurn == 2) P2Size /= 2;
+						affected = currentTurn;
+						if(currentTurn == 1) {
+							P1Size = "small";
+							affected = 1;
+						}
+						else if(currentTurn == 2) {
+							P2Size = "small";
+							affected = 2;
+						}
 					}
 				}
 				
-				// ------- Sentinel electrogun
-				if(playerStats.get(currentTurn+"Tank") == "Sentinel") {
+				// ------- Sentinel electrogun ----------JJ
+				else if(playerStats.get(currentTurn+"Tank") == "Sentinel") {
+					currentAbilityName = "Electrogun";
 					PointerInfo a = MouseInfo.getPointerInfo();
 					Point b = a.getLocation();
 					g.setColor(new Color(255, 255, 0, 50));
-					if(!activated) g.fillRect((int) playerStats.get(currentTurn+"X") + 180, (int) b.getY(), 3000, 20);
+					if(!activated && (Boolean)playerStats.get(currentTurn+"GoingRight")) 
+						g.fillRect((int) playerStats.get(currentTurn+"X") + 180, (int) b.getY(), 3000, 20);
+					else if (!activated) 
+						g.fillRect((int) playerStats.get(currentTurn+"X")-3000, (int) b.getY(), 3000, 20);
+					
 					if(activated) { 
-						g.setColor(new Color(255, 255, 255));
-						g.fillRect((int) playerStats.get(currentTurn+"X") + 180, (int) b.getY(), electrogunLength, 20);
-						if(((int) playerStats.get(enemyPlayer+"Y") >=(int) b.getY() &&
-						   (int) playerStats.get(enemyPlayer+"Y") <=(int) b.getY()+20) ||
-						   ((int) playerStats.get(enemyPlayer+"Y")+134 >=(int) b.getY()) && 
-						   (int) playerStats.get(enemyPlayer+"Y") <=(int) b.getY()){		
-							PVPMethods.dealDamage(baseDamage / 10);
+						if(!electrogunInitiated) {
+						electrogunStartX = (int)playerStats.get(currentTurn+"X");
+						electrogunStartY = (int)b.getY();
+						electrogunInitiated = true;
 						}
-						electrogunLength += 800;
-						if(electrogunLength >= 2500) {
+						g.setColor(new Color(255, 255, 255));
+						// TODO add other direction
+						g.fillRect(electrogunStartX + 180, electrogunStartY, electrogunLength, 20);
+						if(!((int)b.getY()+20 <= (int) playerStats.get(enemyPlayer+"Y")||
+							(int) b.getY() >= (int) playerStats.get(enemyPlayer+"Y")+134)){		
+							PVPMethods.dealDamage(baseDamage/5);
+						}
+						if((Boolean)playerStats.get(currentTurn+"GoingRight")) electrogunLength += 800;
+						else electrogunLength -= 800;
+						if(electrogunLength >= 2500 || electrogunLength <= -2500) {
 							activated = false;
 							electrogunLength = 0;
+							electrogunInitiated = false;
 							PVPMethods.changeTurns();
+
 						}
 					}
 				}
@@ -472,7 +484,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			// PVP Pause screen
         	if(isPaused) { 
         		g.drawImage(PVPPause, 0, 0, null);
-        		// TODO lock controls during pause
         	}
         
         else if(gameState == 4) { // PVP End Screen GS
@@ -480,24 +491,25 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	previousGS = 4;
         	// Tank resets
         	playerStats.put("1X", 10);
-    		playerStats.put("1Y", 735);
+    		playerStats.put("1Y", 800);
     		playerStats.put("2X", 2310);
-    		playerStats.put("2Y", 735);
-    		
+    		playerStats.put("2Y", 800);
     		playerStats.put("1GoingRight", true);
     		playerStats.put("2GoingRight", false);
     		playerStats.put("1Dead", false);
     		playerStats.put("2Dead", false);
-    		playerStats.put("1Tank", "Titan");
-    		playerStats.put("2Tank", "Mouse");
     		playerStats.put("1HP", 100);
     		playerStats.put("2HP", 100);
-        	// General game resets	
+        	// General game resets
+    		speed = 6;
+    		affected = 0; // no one is affected
+    		baseDamage = 10;
 			currentTurn = 1;
+			currentAbility = 1;
 			gameOver = false;
 			fire = false;
 			power = 0;
-			
+			powerBarHeight = 0;
 			PVPEndScreenFrameCounter++;
         	//TODO display winner player name, tank visual & tank name
 			
@@ -519,22 +531,22 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     	home 			= ImageIO.read(new File("GameStates/GS0 - Menu Screen.png"));
     	credits 		= ImageIO.read(new File("GameStates/GS1 - Credit.png"));
     	tankSelection 	= ImageIO.read(new File("GameStates/GS2 - Tank Selection.png"));
-    	PVPMode 		= ImageIO.read(new File("GameStates/GS3 - PVP.png"));
+    	PVPMode 		= ImageIO.read(new File("GameStates/GS3 - PVP V2.png"));
     	PVPPause 		= ImageIO.read(new File("PVP Pause Screen.png"));
     	PVPEnd 			= ImageIO.read(new File("GameStates/GS4 - PVP End Screen.png"));
     	PVPLeaderboard 	= ImageIO.read(new File("GameStates/GS5 - PVP Mode Leaderboard.png"));
     	// Tanks
     	titanTank 		= ImageIO.read(new File("Tanks/Titan Tank.png"));
-
 		mouseTank		= ImageIO.read(new File("Tanks/Mouse Tank.png"));
 		ironcladTank 	= ImageIO.read(new File("Tanks/Ironclad Tank.png"));
 		sentinelTank 	= ImageIO.read(new File("Tanks/Sentinel Tank.png"));
+		mouseTankMini	= ImageIO.read(new File("Tanks/Mouse Tank mini.png"));
 		// Obstacles
 		rock 			= ImageIO.read(new File("Obstacles/rock.png"));
 
 		// Abilities
     	bomb 			= ImageIO.read(new File("Abilities/bomb.png"));
-    	shield = ImageIO.read(new File("Abilities/shield.png"));
+    	shield 			= ImageIO.read(new File("Abilities/shield.png"));
 		// Maps:
 		// For Tank Selection GS
     	tankSelectLocations.put("TitanX", 1535);
@@ -551,11 +563,13 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 		tankImages.put("Mouse", mouseTank);
 		tankImages.put("Ironclad", ironcladTank);
 		tankImages.put("Sentinel", sentinelTank);
+		tankImages.put("Mouse Mini", mouseTankMini);
+		
 
 		playerStats.put("1X", 10);
-		playerStats.put("1Y", 735);
+		playerStats.put("1Y", 800);
 		playerStats.put("2X", 2310);
-		playerStats.put("2Y", 735);
+		playerStats.put("2Y", 800);
 		
 		playerStats.put("1GoingRight", true);
 		playerStats.put("2GoingRight", false);
@@ -595,12 +609,12 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     	
     	if(gameState == 1)
     		gameState = 0;
-    	else if(gameState == 4 && PVPEndScreenFrameCounter >= 50) {
+    	else if(gameState == 4 && PVPEndScreenFrameCounter >= 30) {
     		gameState = 5;
     		PVPEndScreenFrameCounter = 0;
     	}
     	else if(gameState == 5) {
-    		if(previousGS == 4 && leaderboardScreenFrameCounter >= 50) { // only has 1 sec wait time if came from PVP
+    		if(previousGS == 4 && leaderboardScreenFrameCounter >= 30) {
     			gameState = 0;
     			leaderboardScreenFrameCounter = 0;
     		}
@@ -654,46 +668,47 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			if((e.getKeyChar() == 'd' || e.getKeyCode() == KeyEvent.VK_RIGHT) && !isPaused && !gameOver) {
 				dPressed = true;
 			}
-			if(e.getKeyChar() == 32) {
+			if(e.getKeyChar() == 32 && !isPaused) {
 				if(currentAbility == 1) {
 					fire = true;
 					bombStarted = true;
 					mouseX = 0;
 					mouseY = 0;
 				} else if(currentAbility == 2) {
-					lighting = true;
 					activated = true;
+					mouseX = 0;
+					mouseY = 0;
 				}
 
 			}
 			// Dev keys
-    		if(e.getKeyChar() == '=') { // dev key for finishing in PVP mode
+    		if(e.getKeyChar() == '=' && !isPaused) { // dev key for finishing in PVP mode
     			gameState = 4;
     		}
-    		if(e.getKeyChar() == '/') { // dev key for player turn switch
+    		if(e.getKeyChar() == '/' && !isPaused) { // dev key for player turn switch
     			PVPMethods.changeTurns();
     		}
-    		if(e.getKeyChar() == '0') { // dev key for killing both tanks & reviving
+    		if(e.getKeyChar() == '0' && !isPaused) { // dev key for killing both tanks & reviving
     			playerStats.put("1Dead", !(Boolean)playerStats.get("1Dead"));
     			playerStats.put("2Dead", !(Boolean)playerStats.get("2Dead"));
     			gameOver = !gameOver;
     		}
 
-			if(e.getKeyChar() == '1'){
+			if(e.getKeyChar() == '1' && !isPaused){
 				currentAbility = 1;
 			}
-			if(e.getKeyChar() == '2'){
+			if(e.getKeyChar() == '2' && !isPaused){
 				currentAbility = 2;
 			}
 			
 
     	}
-    	else if(gameState == 4 && PVPEndScreenFrameCounter >= 50) {
+    	else if(gameState == 4 && PVPEndScreenFrameCounter >= 30) {
     		gameState = 5;
     		PVPEndScreenFrameCounter = 0;
     	}
     	else if(gameState == 5) {
-    		if(previousGS == 4 && leaderboardScreenFrameCounter >= 50) { // only has 1 sec wait time if came from PVP
+    		if(previousGS == 4 && leaderboardScreenFrameCounter >= 30) { 
     			gameState = 0;
     			leaderboardScreenFrameCounter = 0;
     		}

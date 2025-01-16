@@ -66,6 +66,49 @@ public class PVPMethods {
 		}
 		return drawnImage;	
 	}
+
+		public static BufferedImage drawPlayerMouse(int generatePlayer) {
+		// Generates players' tanks, whether facing right, left, or flipped in those orientations
+			BufferedImage drawnImage = new BufferedImage(180, 134, BufferedImage.TYPE_INT_RGB);
+			if(Main.P1Size.equals("small")) { 
+				if((Boolean)Main.playerStats.get(generatePlayer+"Dead") && (Boolean)Main.playerStats.get(generatePlayer+"GoingRight")) { // P1 death flip facing right
+						drawnImage = flipImageVertical(flipImageHorizontal(Main.tankImages.get(Main.playerStats.get("Tank Mini"))));
+						Main.tankFlippedLow = 25;
+					}
+					else if ((Boolean)Main.playerStats.get(generatePlayer+"Dead")) { // death facing left
+						drawnImage = flipImageVertical(Main.rock);
+						Main.tankFlippedLow = 25;
+					}
+					else if((Boolean)Main.playerStats.get(generatePlayer+"GoingRight")) { // Alive facing right
+						drawnImage = flipImageHorizontal(Main.rock);
+						Main.tankFlippedLow = 0;
+					}
+					else { // Alive facing left
+						drawnImage = Main.tankImages.get(Main.playerStats.get("Tank Mini"));
+						Main.tankFlippedLow = 0;
+					}
+			} else {
+				if((Boolean)Main.playerStats.get(generatePlayer+"Dead") && (Boolean)Main.playerStats.get(generatePlayer+"GoingRight")) { // P1 death flip facing right
+					drawnImage = flipImageVertical(flipImageHorizontal(Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank"))));
+					Main.tankFlippedLow = 25;
+				}
+				else if ((Boolean)Main.playerStats.get(generatePlayer+"Dead")) { // death facing left
+					drawnImage = flipImageVertical(Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank")));
+					Main.tankFlippedLow = 25;
+				}
+				else if((Boolean)Main.playerStats.get(generatePlayer+"GoingRight")) { // Alive facing right
+					drawnImage = flipImageHorizontal(Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank")));
+					Main.tankFlippedLow = 0;
+				}
+				else { // Alive facing left
+					drawnImage = Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank"));
+					Main.tankFlippedLow = 0;
+				}
+		}
+		
+		
+		return drawnImage;	
+	}
 	
 	public static void powerRangeDeterminer() {// gg
 		// Determines power of shot. Constantly increases by 10 pixels until 1700 pixels (max range), then decrease by 10 until 0
@@ -115,6 +158,7 @@ public class PVPMethods {
 			Main.bombY>=(int)Main.playerStats.get(Main.enemyPlayer+"Y")+134 ||
 			Main.bombY<=(int)Main.playerStats.get(Main.enemyPlayer+"Y")))
 		{
+			dealDamage(Main.baseDamage);
 			Main.fire = false;
 			Main.fireYIncrement = -4;
 	
@@ -125,9 +169,22 @@ public class PVPMethods {
 	public static void dead() {
 
 	}
-	public static boolean deathCheck() {
-		// Checks if any player is dead
-		return (Boolean)Main.playerStats.get("1Dead") || (Boolean)Main.playerStats.get("1Dead");
+	public static void deathCheck() {
+		// Checks if any player is dead and changes the necessary variables
+		for(int targetPlayer = 1; targetPlayer < 3; targetPlayer++) {
+			if((int)Main.playerStats.get(targetPlayer+"HP") <= 0) {
+				Main.playerStats.put(targetPlayer+"Dead", true);
+				Main.winnerPlayer = (targetPlayer==1)? 2:1;
+				Main.loserPlayer = targetPlayer;
+				Main.gameOver = true;
+				Main.deathFrameCounter++;
+				if(Main.deathFrameCounter>=50) {
+					Main.gameState = 4;
+					Main.deathFrameCounter = 0;
+				}
+				
+			}
+		}
 	}
 	
 	public static String displayName(String name, int player) {
@@ -137,7 +194,7 @@ public class PVPMethods {
 	}
 	public static Color nameColor(boolean dead) {
 		// returns red color for name if player is dead, white otherwise
-		if(dead) return new Color(216, 75, 61);
+		if(dead) return new Color(200, 0, 0);
 		return new Color(255, 255, 255);
 	}
 	public static void velocityDeterminer(){
@@ -154,21 +211,18 @@ public class PVPMethods {
 			if(Main.affected == 1) {
 				Main.speed = 6;
 				Main.baseDamage = 10;
+				Main.P1Size = "normal";
 			}
 		} else if(Main.currentTurn == 2) {
 			if(Main.affected == 2) {
 				Main.speed = 6;
 				Main.baseDamage = 10;
+				Main.P1Size = "normal";
 			}
 		}
 		Main.currentTurn = (Main.currentTurn == 1)? 2 : 1;
 	}
 	public static void dealDamage(int damage) {
-		if(Main.currentTurn == 1) {
-			Main.P2Health -= damage;
-		} else {
-			Main.P1Health -= damage;
-		}
+		Main.playerStats.put(Main.enemyPlayer+"HP", (int)Main.playerStats.get(Main.enemyPlayer+"HP")-damage);
 	}
 }
-
