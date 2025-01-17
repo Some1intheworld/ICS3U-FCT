@@ -108,13 +108,13 @@ public class PVPMethods {
 		return drawnImage;	
 	}
 	
-	public static void powerRangeDeterminer() {// gg
+	public static void powerRangeDeterminer() {
 		// Determines power of shot. Constantly increases by 10 pixels until 1700 pixels (max range), then decrease by 10 until 0
 		Main.power += Main.increment;
 		Main.powerBarHeight -= 0.2 * (Main.increment);
 		if(Main.power >= 1700) {
-			Main.increment = -10;
-		} else if(Main.power <= 0) Main.increment = 10;
+			Main.increment = -20;
+		} else if(Main.power <= 0) Main.increment = 20;
 
 	}
 	public static void bombStartAndDirectionLocate() {
@@ -128,27 +128,17 @@ public class PVPMethods {
 		Main.bombDirectionRight = (Boolean)Main.playerStats.get(Main.currentTurn+"GoingRight");
 	}
 
-	public static void bombPowerCheck() {
-		// Checks if the bomb is out of power from the power determined in powerRangeDeterminer()
-		// Checks both the forward distance and backwards distance as bomb can be shot
-		// both ways
-		if((Main.fire && Main.bombX+128 > Main.bombXStart + Main.power) ||
-				(Main.fire && Main.bombX+128 < Main.bombXStart - Main.power)) {
-			Main.fire = false;
-			Main.fireYIncrement = -4;
-		}
-
-	}
 	public static void enemyHitCheck() {
 		// Bomb collision
-		if(Main.fire && !(Main.bombX<=(int)Main.playerStats.get(Main.enemyPlayer+"X") ||
-			Main.bombX+120>=(int)Main.playerStats.get(Main.enemyPlayer+"X")+180 ||
+		if(Main.fire && !(Main.bombX>=(int)Main.playerStats.get(Main.enemyPlayer+"X")+180 ||
+			Main.bombX+120<=(int)Main.playerStats.get(Main.enemyPlayer+"X") ||
 			Main.bombY>=(int)Main.playerStats.get(Main.enemyPlayer+"Y")+134 ||
-			Main.bombY<=(int)Main.playerStats.get(Main.enemyPlayer+"Y")))
+			Main.bombY+115<=(int)Main.playerStats.get(Main.enemyPlayer+"Y")))
 		{
 			dealDamage(Main.baseDamage);
 			Main.fire = false;
-			Main.fireYIncrement = -4;
+			Main.bombIsInAir = false;
+			changeTurns();
 	
 		}
 		
@@ -177,11 +167,7 @@ public class PVPMethods {
 	
 	public static String displayName(String name, int player) {
 		// displays player name. if name is empty, display "Player #"
-		if(name.equals("")) {
-			//System.out.println("Player " + player);
-			return "Player " + player;
-		}
-			
+		if(name.equals("")) return "Player " + player;
 		return name;
 	}
 	public static Color nameColor(boolean dead) {
@@ -209,12 +195,11 @@ public class PVPMethods {
         }
     }
 	
-	public static void lighting() {
-	}
-	
 	public static void changeTurns() {
 		Main.currentAbility = 1;
 		Main.timer = 0;
+		Main.power = 0;
+		Main.powerBarHeight = 0;
 		if(Main.currentTurn == 1) {
 			if(Main.affected == 1) {
 				Main.speed = 6;

@@ -52,9 +52,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     public static String P1Size= "normal";
     // PVP Mode GS 
     public static int baseDamage = 10;
-	/*
-	 * public static int P1Health = 100; public static int P2Health = 100;
-	 */
 
     
     
@@ -85,7 +82,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static boolean aPressed;
 	public static boolean dPressed;
 	public static boolean fire;
-	public static boolean lighting;
 	public static int affected;
 	public static int speed = 6;
 	
@@ -94,8 +90,8 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static boolean gameOver;
 	
 	public static int tankFlippedLow;
-	public static int timer = 0;
-	public static int frameCounter = 0;
+	public static int timer;
+	public static int frameCounter;
 	public static int deathFrameCounter;
 	
 	// ! abilities  
@@ -106,9 +102,11 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static int bombXStart;
 	public static int bombYStart;
 	public static boolean bombDirectionRight = true;
-	public static int powerBarHeight = 0;
+	public static boolean bombIsInAir;
 	
-	public static int electrogunLength = 0;
+	public static int powerBarHeight;
+	
+	public static int electrogunLength;
 	public static int electrogunStartX;
 	public static int electrogunStartY;
 	public static boolean electrogunInitiated;
@@ -116,10 +114,9 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static boolean damageReductionDone;
 	
 	public static boolean bombStarted;
-	public static int power = 0;
-	public static int increment = 10;
+	public static int power;
+	public static int increment = 20;
 	public static int fireIncrement = 10;
-	public static int fireYIncrement = -4;
 	public static int velocity;
 	public static int gravity = 2;
 	public static double reachTime; 
@@ -288,15 +285,15 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	g.drawString(power+"", 330, 350);
         	g.setColor(new Color(0, 0, 0));
         	g.setFont(new Font("Arial", 1, 50));
-        	g.drawString("Time left: " + (15 - (timer /50))+"", 1130, 110);
+        	g.drawString("Time left: " + (10 - (timer /50))+"", 1130, 110);
         	
         	
         	// Timer
-        	if(timer >= 750) {
+        	if(timer >= 500) {
         		PVPMethods.changeTurns();
         		timer = 0;
         	}
-        	timer ++;
+        	if(!isPaused) timer++;
         	
         	// Check if dead
         	PVPMethods.deathCheck();
@@ -335,19 +332,12 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			g.setFont(new Font("Courier", 1, 30));
 			g.setColor(new Color(100, 242, 0));
 			g.drawString(baseDamage +"", 500, 500);
-			
-			
+						
 			g.drawString(Main.bombYStart - (Main.power / 2) +"", 600, 500);
-			if(fire && (bombY < 50)) {
-				fireYIncrement = 4;
-			}
-			if(Main.fire && (Main.bombY < Main.bombYStart - (Main.power / 2))) {
-				Main.fireYIncrement = 4;
-//				YIncrementMultiplier *= YIncrementMultiplier;
-			}
-			// ! ======== Bomb Ability =======
+			
 			enemyPlayer = (currentTurn == 1)? 2 : 1;
-			if(!fire) {
+			// ! ======== Bomb Ability =======
+			if(!fire && !isPaused) {
 				PVPMethods.powerRangeDeterminer();
 				PVPMethods.velocityDeterminer();
 			}
@@ -355,36 +345,38 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 				PVPMethods.bombStartAndDirectionLocate();
 				bombStarted = false;
 			}
-
-
 			
-			if(currentAbility == 1) {
+			if(currentAbility == 1 && !isPaused) {
 				currentAbilityName = "Bomb";
 				PVPMethods.bombDirection();
 				if(fire) { // Opened fire
+					bombIsInAir = true;
 					g.drawImage(bomb, bombX, bombY, null);
 					baseDamage = 10;
 					bombX += fireIncrement;
 				    bombY += velocity; // Update the Y position based on velocity
 				    velocity += gravity;
-					
-					PVPMethods.bombPowerCheck();
 					PVPMethods.enemyHitCheck();
 					
-					if(bombY+115 >= 911) fire = false;
+					if(bombY+115 >= 950) {
+						fire = false;
+						bombIsInAir = false;
+						PVPMethods.changeTurns();
+					}
 				} 
 				
-			} else if(currentAbility == 2) {	
-				// ------ Titan Lighting Strike -------JJ
+				
+			} else if(currentAbility == 2  && !isPaused) {	
+				// ------ Titan Lightning Strike -------JJ
 				if(playerStats.get(currentTurn+"Tank") == "Titan") {
-					currentAbilityName = "Lighting Strike";
+					currentAbilityName = "Lightning Strike";
 					PointerInfo a = MouseInfo.getPointerInfo();
 					Point b = a.getLocation();
 					g.drawOval((int) b.getX()-100, 850, 200, 100);
-					if(activated) { // lighting strike
+					if(activated) { // lightning strike
 						if(!((int) playerStats.get(enemyPlayer+"X") >=(int) b.getX()+100 ||
 						   (int) playerStats.get(enemyPlayer+"X")+180 <=(int) b.getX()-100)){		
-							PVPMethods.dealDamage(100); // TODO 
+							PVPMethods.dealDamage(baseDamage);
 							speed = 2;
 							baseDamage = 6;
 							affected = enemyPlayer;
@@ -396,7 +388,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 					}
 				}
 				
-				// ------ Ironclad Damage Reduction -------
+				// ------ Ironclad Damage Reduction ------- // FIXME
 				else if(playerStats.get(currentTurn+"Tank") == "Ironclad") {
 					currentAbilityName = "Damage Reduction";
 					if(activated) {
@@ -501,6 +493,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     		playerStats.put("1HP", 100);
     		playerStats.put("2HP", 100);
         	// General game resets
+    		timer = 0;
     		speed = 6;
     		affected = 0; // no one is affected
     		baseDamage = 10;
@@ -510,10 +503,11 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			fire = false;
 			power = 0;
 			powerBarHeight = 0;
-			PVPEndScreenFrameCounter++;
+			electrogunLength = 0;
+			fireIncrement = 10;
+			gravity = 2;
 
-			//TODO display winner player name, tank visual & tank name
-			
+			PVPEndScreenFrameCounter++;		
         }
         else if(gameState == 5){ // PVP Leaderboard GS
         	g.drawImage(PVPLeaderboard, 0, 0, null);
@@ -683,7 +677,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 				dPressed = true;
 			}
 			if(e.getKeyChar() == 32 && !isPaused) {
-				if(currentAbility == 1) {
+				if(currentAbility == 1 && !bombIsInAir) {
 					fire = true;
 					bombStarted = true;
 					mouseX = 0;
