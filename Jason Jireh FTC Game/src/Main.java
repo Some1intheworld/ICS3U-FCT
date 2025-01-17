@@ -56,7 +56,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     public static double P1Wins;
     public static double P1Battles;
     public static double P1Winrate;
-    public static int P1Size;
+    public static String P1Size= "normal";
     // PVP Mode GS 
     public static int baseDamage = 10;
 	/*
@@ -71,7 +71,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     public static double P2Wins;
     public static double P2Battles;
     public static double P2Winrate;
-    public static int P2Size;
+    public static String P2Size;
     // PVP Mode GS  
     
     // ! General stats
@@ -291,9 +291,9 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	g.setColor(new Color(0, 0, 0));
         	g.setFont(new Font("Arial", 1, 40));
         	g.drawString(power+"", 330, 350);
-        	g.setColor(new Color(255, 255, 255));
+        	g.setColor(new Color(0, 0, 0));
         	g.setFont(new Font("Arial", 1, 50));
-        	g.drawString("Time left: " + (15 - (timer /50))+"", 1110, 90);
+        	g.drawString("Time left: " + (15 - (timer /50))+"", 1130, 110);
         	
         	
         	// Timer
@@ -310,19 +310,21 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	PVPMethods.playerMovement();
         	
 			// Drawing P1 tank movement, deaths, & name
-        	g.drawImage(PVPMethods.drawPlayer(1), (int)playerStats.get("1X"), (int)playerStats.get("1Y")+tankFlippedLow, null);
-        	// P1 Name
-        	g.setColor(PVPMethods.nameColor((Boolean)playerStats.get("1Dead"))); // Sets color
-        	if(!gameOver && currentTurn == 1) g.setColor(new Color(5, 217, 255));
-        	g.setFont(new Font("Arial", 1, 50));
-        	g.drawString(PVPMethods.displayName(P1Name, 1), (int)playerStats.get("1X"), (int)playerStats.get("1Y")-120);
-        	
+			g.drawImage(PVPMethods.drawPlayerMouse(1), (int)playerStats.get("1X"), (int)playerStats.get("1Y")+tankFlippedLow, null);
+			// P1 Name
+			g.setColor(PVPMethods.nameColor((Boolean)playerStats.get("1Dead"))); // Sets color
+			if(!gameOver && currentTurn == 1) g.setColor(new Color(159, 27, 255));
+			g.setFont(new Font("Arial", 1, 50));
+			g.drawString(PVPMethods.displayName(P1Name, 1), (int)playerStats.get("1X"), (int)playerStats.get("1Y")-120);
+			
 			// Drawing P2 tank movement, deaths, & name
-        	g.drawImage(PVPMethods.drawPlayer(2), (int)playerStats.get("2X"), (int)playerStats.get("2Y")+tankFlippedLow, null);
-        	// P2 Name
-        	g.setColor(PVPMethods.nameColor((Boolean)playerStats.get("2Dead")));
-        	if(!gameOver && currentTurn == 2) g.setColor(new Color(5, 217, 255));
-        	g.drawString(PVPMethods.displayName(P2Name, 2), (int)playerStats.get("2X"), (int)playerStats.get("2Y")-120);
+			g.drawImage(PVPMethods.drawPlayer(2), (int)playerStats.get("2X"), (int)playerStats.get("2Y")+tankFlippedLow, null);
+			// P2 Name
+			g.setColor(PVPMethods.nameColor((Boolean)playerStats.get("2Dead")));
+			if(!gameOver && currentTurn == 2) g.setColor(new Color(159, 27, 255));
+			g.drawString(PVPMethods.displayName(P2Name, 2), (int)playerStats.get("2X"), (int)playerStats.get("2Y")-120);
+			
+			
 			// HP:
         	g.setColor(new Color(150, 0, 0));
 			g.fillRect(500, 21, (int)playerStats.get("1HP")*6-51, 104);
@@ -332,7 +334,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			g.drawString((int)playerStats.get("2HP") + "", 1792, 90);
 					
 			// Fire button
-			g.drawString(currentAbilityName, 1720, 1050);
+			g.drawString(currentAbilityName, 1720, 1080);
 			g.setColor(new Color(0, 0, 0));
 			g.setFont(new Font("Arial", 1, 30));
 			g.setFont(new Font("Courier", 1, 30));
@@ -341,12 +343,12 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			
 			
 			g.drawString(Main.bombYStart - (Main.power / 2) +"", 600, 500);
-			if(!isPaused && mouseX >= 2078 && mouseX <= 2269 && mouseY >= 933 && mouseY <= 1124) {
+			/*if(!isPaused && mouseX >= 2078 && mouseX <= 2269 && mouseY >= 933 && mouseY <= 1124) {
 				fire = true;
 				bombStarted = true;
 				mouseX = 0;
 				mouseY = 0;
-			}
+			}*/
 			if(fire && (bombY < 50)) {
 				fireYIncrement = 4;
 			}
@@ -386,23 +388,24 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 					currentAbilityName = "Lighting Strike";
 					PointerInfo a = MouseInfo.getPointerInfo();
 					Point b = a.getLocation();
-					g.drawOval((int) b.getX()-100, 800, 200, 100);
+					g.drawOval((int) b.getX()-100, 850, 200, 100);
 					if(activated) { // lighting strike
 						if(!((int) playerStats.get(enemyPlayer+"X") >=(int) b.getX()+100 ||
 						   (int) playerStats.get(enemyPlayer+"X")+180 <=(int) b.getX()-100)){		
-							PVPMethods.dealDamage(100);
+							PVPMethods.dealDamage(baseDamage);
 							speed = 2;
 							baseDamage = 6;
 							affected = enemyPlayer;
 						}
 						g.fillRect((int) b.getX()-100, 0, 200, 1000);
-						PVPMethods.changeTurns();
 						activated = false;
+						PVPMethods.changeTurns();
+						
 					}
 				}
 				
 				// ------ Ironclad Damage Reduction -------
-				if(playerStats.get(currentTurn+"Tank") == "Ironclad") {
+				else if(playerStats.get(currentTurn+"Tank") == "Ironclad") {
 					currentAbilityName = "Damage Reduction";
 					if(activated) {
 						frameCounter += 1;
@@ -423,34 +426,44 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 				}
 				
 				// ------- Mouse Shrink -------
-				if(playerStats.get(currentTurn+"Tank") == "Mouse") {
+				else if(playerStats.get(currentTurn+"Tank") == "Mouse") {
 					currentAbilityName = "Shrink";
 					if(activated) {
 						affected = currentTurn;
-						if(currentTurn == 1) P1Size /= 2;
-						else if(currentTurn == 2) P2Size /= 2;
+						if(currentTurn == 1) {
+							P1Size = "small";
+							affected = 1;
+						}
+						else if(currentTurn == 2) {
+							P2Size = "small";
+							affected = 2;
+						}
 					}
 				}
 				
 				// ------- Sentinel electrogun ----------JJ
-				if(playerStats.get(currentTurn+"Tank") == "Sentinel") {
+				else if(playerStats.get(currentTurn+"Tank") == "Sentinel") {
 					currentAbilityName = "Electrogun";
 					PointerInfo a = MouseInfo.getPointerInfo();
 					Point b = a.getLocation();
 					g.setColor(new Color(255, 255, 0, 50));
-					if(!activated && (Boolean)playerStats.get(currentTurn+"GoingRight")) g.fillRect((int) playerStats.get(currentTurn+"X") + 180, (int) b.getY(), 3000, 20);
-					else if (!activated) g.fillRect((int) playerStats.get(currentTurn+"X")-3000, (int) b.getY(), 3000, 20);
+					if(!activated && (Boolean)playerStats.get(currentTurn+"GoingRight")) 
+						g.fillRect((int) playerStats.get(currentTurn+"X") + 180, (int) b.getY(), 3000, 20);
+					else if (!activated) 
+						g.fillRect((int) playerStats.get(currentTurn+"X")-3000, (int) b.getY(), 3000, 20);
 					
 					if(activated) { 
 						if(!electrogunInitiated) {
 						electrogunStartX = (int)playerStats.get(currentTurn+"X");
 						electrogunStartY = (int)b.getY();
+						electrogunInitiated = true;
 						}
 						g.setColor(new Color(255, 255, 255));
+						// TODO add other direction
 						g.fillRect(electrogunStartX + 180, electrogunStartY, electrogunLength, 20);
 						if(!((int)b.getY()+20 <= (int) playerStats.get(enemyPlayer+"Y")||
 							(int) b.getY() >= (int) playerStats.get(enemyPlayer+"Y")+134)){		
-							PVPMethods.dealDamage(baseDamage/10);
+							PVPMethods.dealDamage(baseDamage/5);
 						}
 						if((Boolean)playerStats.get(currentTurn+"GoingRight")) electrogunLength += 800;
 						else electrogunLength -= 800;
@@ -459,6 +472,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 							electrogunLength = 0;
 							electrogunInitiated = false;
 							PVPMethods.changeTurns();
+
 						}
 					}
 				}
@@ -477,9 +491,9 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	previousGS = 4;
         	// Tank resets
         	playerStats.put("1X", 10);
-    		playerStats.put("1Y", 735);
+    		playerStats.put("1Y", 800);
     		playerStats.put("2X", 2310);
-    		playerStats.put("2Y", 735);
+    		playerStats.put("2Y", 800);
     		playerStats.put("1GoingRight", true);
     		playerStats.put("2GoingRight", false);
     		playerStats.put("1Dead", false);
@@ -517,7 +531,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     	home 			= ImageIO.read(new File("GameStates/GS0 - Menu Screen.png"));
     	credits 		= ImageIO.read(new File("GameStates/GS1 - Credit.png"));
     	tankSelection 	= ImageIO.read(new File("GameStates/GS2 - Tank Selection.png"));
-    	PVPMode 		= ImageIO.read(new File("GameStates/GS3 - PVP.png"));
+    	PVPMode 		= ImageIO.read(new File("GameStates/GS3 - PVP V2.png"));
     	PVPPause 		= ImageIO.read(new File("PVP Pause Screen.png"));
     	PVPEnd 			= ImageIO.read(new File("GameStates/GS4 - PVP End Screen.png"));
     	PVPLeaderboard 	= ImageIO.read(new File("GameStates/GS5 - PVP Mode Leaderboard.png"));
@@ -549,11 +563,13 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 		tankImages.put("Mouse", mouseTank);
 		tankImages.put("Ironclad", ironcladTank);
 		tankImages.put("Sentinel", sentinelTank);
+		tankImages.put("Mouse Mini", mouseTankMini);
+		
 
 		playerStats.put("1X", 10);
-		playerStats.put("1Y", 735);
+		playerStats.put("1Y", 800);
 		playerStats.put("2X", 2310);
-		playerStats.put("2Y", 735);
+		playerStats.put("2Y", 800);
 		
 		playerStats.put("1GoingRight", true);
 		playerStats.put("2GoingRight", false);
@@ -659,7 +675,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 					mouseX = 0;
 					mouseY = 0;
 				} else if(currentAbility == 2) {
-					lighting = true;
 					activated = true;
 					mouseX = 0;
 					mouseY = 0;

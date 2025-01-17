@@ -66,6 +66,49 @@ public class PVPMethods {
 		}
 		return drawnImage;	
 	}
+
+		public static BufferedImage drawPlayerMouse(int generatePlayer) {
+		// Generates players' tanks, whether facing right, left, or flipped in those orientations
+			BufferedImage drawnImage = new BufferedImage(180, 134, BufferedImage.TYPE_INT_RGB);
+			if(Main.P1Size.equals("small")) { 
+				if((Boolean)Main.playerStats.get(generatePlayer+"Dead") && (Boolean)Main.playerStats.get(generatePlayer+"GoingRight")) { // P1 death flip facing right
+						drawnImage = flipImageVertical(flipImageHorizontal(Main.tankImages.get(Main.playerStats.get("Tank Mini"))));
+						Main.tankFlippedLow = 25;
+					}
+					else if ((Boolean)Main.playerStats.get(generatePlayer+"Dead")) { // death facing left
+						drawnImage = flipImageVertical(Main.rock);
+						Main.tankFlippedLow = 25;
+					}
+					else if((Boolean)Main.playerStats.get(generatePlayer+"GoingRight")) { // Alive facing right
+						drawnImage = flipImageHorizontal(Main.rock);
+						Main.tankFlippedLow = 0;
+					}
+					else { // Alive facing left
+						drawnImage = Main.tankImages.get(Main.playerStats.get("Tank Mini"));
+						Main.tankFlippedLow = 0;
+					}
+			} else {
+				if((Boolean)Main.playerStats.get(generatePlayer+"Dead") && (Boolean)Main.playerStats.get(generatePlayer+"GoingRight")) { // P1 death flip facing right
+					drawnImage = flipImageVertical(flipImageHorizontal(Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank"))));
+					Main.tankFlippedLow = 25;
+				}
+				else if ((Boolean)Main.playerStats.get(generatePlayer+"Dead")) { // death facing left
+					drawnImage = flipImageVertical(Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank")));
+					Main.tankFlippedLow = 25;
+				}
+				else if((Boolean)Main.playerStats.get(generatePlayer+"GoingRight")) { // Alive facing right
+					drawnImage = flipImageHorizontal(Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank")));
+					Main.tankFlippedLow = 0;
+				}
+				else { // Alive facing left
+					drawnImage = Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank"));
+					Main.tankFlippedLow = 0;
+				}
+		}
+		
+		
+		return drawnImage;	
+	}
 	
 	public static void powerRangeDeterminer() {// gg
 		// Determines power of shot. Constantly increases by 10 pixels until 1700 pixels (max range), then decrease by 10 until 0
@@ -151,7 +194,7 @@ public class PVPMethods {
 	}
 	public static Color nameColor(boolean dead) {
 		// returns red color for name if player is dead, white otherwise
-		if(dead) return new Color(216, 75, 61);
+		if(dead) return new Color(200, 0, 0);
 		return new Color(255, 255, 255);
 	}
 	public static void velocityDeterminer(){
@@ -168,20 +211,18 @@ public class PVPMethods {
 			if(Main.affected == 1) {
 				Main.speed = 6;
 				Main.baseDamage = 10;
+				Main.P1Size = "normal";
 			}
 		} else if(Main.currentTurn == 2) {
 			if(Main.affected == 2) {
 				Main.speed = 6;
 				Main.baseDamage = 10;
+				Main.P1Size = "normal";
 			}
 		}
 		Main.currentTurn = (Main.currentTurn == 1)? 2 : 1;
 	}
 	public static void dealDamage(int damage) {
-		if(Main.currentTurn == 1) {
-			Main.playerStats.put("2HP", (int)Main.playerStats.get("2HP")-damage);
-		} else {
-			Main.playerStats.put("1HP", (int)Main.playerStats.get("1HP")-damage);
-		}
+		Main.playerStats.put(Main.enemyPlayer+"HP", (int)Main.playerStats.get(Main.enemyPlayer+"HP")-damage);
 	}
 }
