@@ -114,8 +114,8 @@ public class PVPMethods {
 		Main.power += Main.increment;
 		Main.powerBarHeight -= 0.2 * (Main.increment);
 		if(Main.power >= 1700) {
-			Main.increment = -20;
-		} else if(Main.power <= 0) Main.increment = 20;
+			Main.increment = -40;
+		} else if(Main.power <= 0) Main.increment = 40;
 
 	}
 	public static void bombStartAndDirectionLocate() {
@@ -136,15 +136,28 @@ public class PVPMethods {
 			Main.bombY>=(int)Main.playerStats.get(Main.enemyPlayer+"Y")+114 ||
 			Main.bombY+115<=(int)Main.playerStats.get(Main.enemyPlayer+"Y")+20))
 		{
-			Main.enemyHit = true;
 			Main.explode = true;
-			dealDamage(Main.baseDamage);
+			if(Main.baseDamage == 5) {
+				dealDamage(10);
+			} else dealDamage(Main.baseDamage + 10);
+			Main.enemyHit = true;
 			Main.fire = false;
 			Main.bombIsInAir = false;
 			changeTurns();
 	
 		}
+		// !------------ Bomb collision with obstacles
+		// if(Main.fire && !(Main.bombX>=Main.crateX +512 ||
+		// 		Main.bombX+100<= Main.crateX ||
+		// 		Main.bombY>= Main.crateY + 512||
+		// 		Main.bombY+80<=(int)Main.crateY))
+		// 	{
+		// 		Main.explode = true;
+		// 		Main.fire = false;
+		// 		Main.bombIsInAir = false;
+		// 		changeTurns();
 		
+		// 	}
 	}
 	
 	public static void dead() {

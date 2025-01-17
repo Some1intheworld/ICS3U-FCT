@@ -103,6 +103,9 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static boolean bombDirectionRight = true;
 	public static boolean bombIsInAir;
 	public static boolean enemyHit;
+	public static BufferedImage scorchMark;
+		public static int crateX = 800;
+	public static int crateY = 500;
 	
 	public static int powerBarHeight;
 	
@@ -119,7 +122,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	
 	public static boolean bombStarted;
 	public static int power;
-	public static int increment = 20;
+	public static int increment = 40;
 	public static int fireIncrement = 10;
 	public static int velocity;
 	public static int gravity = 2;
@@ -297,12 +300,17 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         		PVPMethods.changeTurns();
         		timer = 0;
         	}
-        	if(!isPaused) timer++;
+        	if(!isPaused && !gameOver) timer++;
         	
         	
         	
         	// Player movement	
         	PVPMethods.playerMovement();
+
+
+
+					// Obstacles
+					g.fillRect(crateX, crateY, 300, 300);
         	
 			// Drawing P1 tank movement, deaths, & name
 			g.drawImage(PVPMethods.drawPlayerMouse(1), (int)playerStats.get("1X"), (int)playerStats.get("1Y")+tankFlippedLow, null);
@@ -333,8 +341,11 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			
 			// HP:
         	g.setColor(new Color(150, 0, 0));
-			g.fillRect(500, 21, (int)playerStats.get("1HP")*6-51, 104);
-        	g.fillRect(2060, 21, -(int)playerStats.get("2HP") *6+51, 104);
+
+			if(!gameOver){
+				g.fillRect(500, 21, (int)playerStats.get("1HP")*6-51, 104);
+				g.fillRect(2060, 21, -(int)playerStats.get("2HP") *6+51, 104);
+			}
         	g.setColor(new Color(0, 0, 0));
 			g.drawString((int)playerStats.get("1HP") +"", 683, 90);
 			g.drawString((int)playerStats.get("2HP") + "", 1792, 90);
@@ -352,7 +363,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			
 			enemyPlayer = (currentTurn == 1)? 2 : 1;
 			// ! ======== Bomb Ability =======
-			if(!fire && !isPaused) {
+			if(!fire && !isPaused && !gameOver) {
 				PVPMethods.powerRangeDeterminer();
 				PVPMethods.velocityDeterminer();
 			}
@@ -361,7 +372,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 				bombStarted = false;
 			}
 			
-			if(currentAbility == 1 && !isPaused) {
+			if(currentAbility == 1 && !isPaused && !gameOver) {
 				currentAbilityName = "Bomb";
 				PVPMethods.bombDirection();
 				if(!fire && (Boolean)playerStats.get(currentTurn+"GoingRight")){
@@ -373,7 +384,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 				if(fire) { // Opened fire
 					bombIsInAir = true;
 					g.drawImage(bomb, bombX, bombY, null);
-					baseDamage = 10;
 					bombX += fireIncrement;
 				    bombY += velocity; // Update the Y position based on velocity
 				    velocity += gravity;
@@ -392,9 +402,9 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 					}	
 				}
 			} 
-			else if(currentAbility == 2  && !isPaused)
+			else if(currentAbility == 2  && !isPaused && !gameOver)
 			{	
-				// ------ Titan Lightning Strike -------JJ
+				// ------ Titan Lightning Strike -------
 				if(playerStats.get(currentTurn+"Tank") == "Titan") {
 					currentAbilityName = "Lightning Strike";
 					Graphics2D g2 = (Graphics2D) g.create();
@@ -417,7 +427,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 					}
 				}
 				
-				// ------ Ironclad Damage Reduction ------- // FIXME
+				// ------ Ironclad Damage Reduction ------- 
 				else if(playerStats.get(currentTurn+"Tank") == "Ironclad") {
 					currentAbilityName = "Damage Reduction";
 					if(activated) {
@@ -454,7 +464,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 					}
 				}
 				
-				// ------- Sentinel electrogun ----------JJ
+				// ------- Sentinel electrogun ----------
 				else if(playerStats.get(currentTurn+"Tank") == "Sentinel") {
 					currentAbilityName = "Electrogun";
 					PointerInfo a = MouseInfo.getPointerInfo();
@@ -509,7 +519,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			g.drawString(PVPMethods.displayName((playerStats.get(winnerPlayer+"Name")+""), winnerPlayer), 1120, 310);
 			g.setFont(new Font("Arial", 1, 60));
 			g.drawString((playerStats.get(winnerPlayer+"Tank")+"").toUpperCase(), 1130, 1025);
-			g.drawImage(tankImagesEndScreen.get(playerStats.get(winnerPlayer+"Tank")+""), 978, 472, null);
+			g.drawImage(tankImagesEndScreen.get(playerStats.get(winnerPlayer+"Tank")+""), 978, 492, null);
         	
         	// Tank resets
         	playerStats.put("1X", 10);
@@ -535,6 +545,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			powerBarHeight = 0;
 			electrogunLength = 0;
 			fireIncrement = 10;
+			increment = 40;
 			gravity = 2;
 
 			PVPEndScreenFrameCounter++;		
@@ -592,7 +603,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     	bomb 			= ImageIO.read(new File("Abilities/bomb.png"));
     	shield 			= ImageIO.read(new File("Abilities/shield.png"));
     	aiming 			= ImageIO.read(new File("Abilities/aim.png"));
-    	
+    	scorchMark		= ImageIO.read(new File("Abilities/Bomb Scorch Mark.png"));
 		// Maps:
 		// For Tank Selection GS
     	tankSelectLocations.put("TitanX", 1535);
