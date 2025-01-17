@@ -35,8 +35,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static BufferedImage rock;
 	public static BufferedImage wall;
 	public static BufferedImage shield;
-    public static Image explosion;
-    public static boolean explode;
 	
     // ! Mouse/Keyboard Events
     public static int mouseX;
@@ -104,6 +102,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static int bombYStart;
 	public static boolean bombDirectionRight = true;
 	public static boolean bombIsInAir;
+	public static boolean enemyHit;
 	
 	public static int powerBarHeight;
 	
@@ -111,6 +110,10 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static int electrogunStartX;
 	public static int electrogunStartY;
 	public static boolean electrogunInitiated;
+	
+    public static BufferedImage explosion;
+    public static boolean explode;
+    public static BufferedImage aiming;
 	
 	public static boolean damageReductionDone;
 	
@@ -305,7 +308,12 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			g.drawImage(PVPMethods.drawPlayerMouse(1), (int)playerStats.get("1X"), (int)playerStats.get("1Y")+tankFlippedLow, null);
 			// P1 Name
 			g.setColor(PVPMethods.nameColor((Boolean)playerStats.get("1Dead"))); // Sets color
-			if(!gameOver && currentTurn == 1) g.setColor(new Color(159, 27, 255));
+			if(!gameOver && currentTurn == 1) {
+				g.setColor(new Color(255, 214, 0));
+				g.setFont(new Font("Arial", 0, 30));
+				g.drawString("Your Turn!", (int)playerStats.get("1X"), (int)playerStats.get("1Y")-190);
+				g.setColor(new Color(159, 27, 255));
+			}
 			g.setFont(new Font("Arial", 1, 50));
 			g.drawString(PVPMethods.displayName(playerStats.get("1Name")+"", 1), (int)playerStats.get("1X"), (int)playerStats.get("1Y")-120);
 			
@@ -313,7 +321,13 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			g.drawImage(PVPMethods.drawPlayer(2), (int)playerStats.get("2X"), (int)playerStats.get("2Y")+tankFlippedLow, null);
 			// P2 Name
 			g.setColor(PVPMethods.nameColor((Boolean)playerStats.get("2Dead")));
-			if(!gameOver && currentTurn == 2) g.setColor(new Color(159, 27, 255));
+			if(!gameOver && currentTurn == 2) {
+				g.setColor(new Color(255, 214, 0));
+				g.setFont(new Font("Arial", 0, 30));
+				g.drawString("Your Turn!", (int)playerStats.get("2X"), (int)playerStats.get("2Y")-190);
+				g.setColor(new Color(159, 27, 255));
+			}
+			g.setFont(new Font("Arial", 1, 50));
 			g.drawString(PVPMethods.displayName(playerStats.get("2Name")+"", 2), (int)playerStats.get("2X"), (int)playerStats.get("2Y")-120);
 			
 			
@@ -326,9 +340,10 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			g.drawString((int)playerStats.get("2HP") + "", 1792, 90);
 					
 			// Fire button
-			g.drawString(currentAbilityName, 1720, 1080);
 			g.setColor(new Color(0, 0, 0));
-			g.setFont(new Font("Arial", 1, 30));
+			g.setFont(new Font("Arial", 1, 40));
+			g.drawString(currentAbility+": "+currentAbilityName, 1700, 1090);
+			g.setColor(new Color(0, 0, 0));
 			g.setFont(new Font("Courier", 1, 30));
 			g.setColor(new Color(100, 242, 0));
 			g.drawString(baseDamage +"", 500, 500);
@@ -349,6 +364,12 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			if(currentAbility == 1 && !isPaused) {
 				currentAbilityName = "Bomb";
 				PVPMethods.bombDirection();
+				if(!fire && (Boolean)playerStats.get(currentTurn+"GoingRight")){
+					g.drawImage(aiming, (int)playerStats.get(currentTurn+"X")+power, 845, null);
+				}
+				else if(!fire && !(Boolean)playerStats.get(currentTurn+"GoingRight")){
+					g.drawImage(aiming, (int)playerStats.get(currentTurn+"X")-power, 845, null);
+				}
 				if(fire) { // Opened fire
 					bombIsInAir = true;
 					g.drawImage(bomb, bombX, bombY, null);
@@ -358,13 +379,14 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 				    velocity += gravity;
 					PVPMethods.enemyHitCheck();
 					
-					if(bombY+115 >= 950) {
+					if(bombY+115 >= 950 && !enemyHit) {
 						explode = true;
 						fire = false;
 						bombIsInAir = false;
 						PVPMethods.changeTurns();
 					}
 					if(explode) { 
+						enemyHit = false;
 						g.drawImage(explosion, bombX, bombY, null); 
 						explode = false;
 					}	
@@ -375,9 +397,11 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 				// ------ Titan Lightning Strike -------JJ
 				if(playerStats.get(currentTurn+"Tank") == "Titan") {
 					currentAbilityName = "Lightning Strike";
+					Graphics2D g2 = (Graphics2D) g.create();
+		        	g2.setStroke(new BasicStroke(3));
 					PointerInfo a = MouseInfo.getPointerInfo();
 					Point b = a.getLocation();
-					g.drawOval((int) b.getX()-100, 850, 200, 100);
+					g2.drawOval((int) b.getX()-100, 860, 200, 100);
 					if(activated) { // lightning strike
 						if(!((int) playerStats.get(enemyPlayer+"X") >=(int) b.getX()+100 ||
 						   (int) playerStats.get(enemyPlayer+"X")+180 <=(int) b.getX()-100)){		
@@ -527,7 +551,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	}
     
     // Mouse and Keyboard Methods
-    @SuppressWarnings("deprecation")
 	public static void main(String[] args) throws IOException{
     	// Disable Java from automatically scaling content based on system’s DPI settings
     	System.setProperty("sun.java2d.uiScale", "1.0");
@@ -563,11 +586,13 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 		// Obstacles
 		rock 			= ImageIO.read(new File("Obstacles/rock.png"));
 		
-		explosion 		= ImageIO.read(new File("explosion.png"));
+		explosion 		= ImageIO.read(new File("Abilities/explosion.png"));
 		
 		// Abilities
     	bomb 			= ImageIO.read(new File("Abilities/bomb.png"));
     	shield 			= ImageIO.read(new File("Abilities/shield.png"));
+    	aiming 			= ImageIO.read(new File("Abilities/aim.png"));
+    	
 		// Maps:
 		// For Tank Selection GS
     	tankSelectLocations.put("TitanX", 1535);

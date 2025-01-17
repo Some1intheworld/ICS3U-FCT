@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.image.BufferedImage;
 
 public class PVPMethods {
@@ -135,6 +136,7 @@ public class PVPMethods {
 			Main.bombY>=(int)Main.playerStats.get(Main.enemyPlayer+"Y")+114 ||
 			Main.bombY+115<=(int)Main.playerStats.get(Main.enemyPlayer+"Y")+20))
 		{
+			Main.enemyHit = true;
 			Main.explode = true;
 			dealDamage(Main.baseDamage);
 			Main.fire = false;
