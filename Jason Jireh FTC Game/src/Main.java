@@ -30,12 +30,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     public static BufferedImage PVPPause;
     public static BufferedImage PVPEnd;
     public static BufferedImage PVPLeaderboard;
-    // tanks
-    public static BufferedImage titanTank;
-    public static BufferedImage ironcladTank;
-    public static BufferedImage mouseTank;
-    public static BufferedImage sentinelTank;
-    public static BufferedImage mouseTankMini;
 
 	// Objects Images
 	public static BufferedImage crate;
@@ -52,7 +46,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     public static Map<String, Object> playerStats = new HashMap<>();
     // Player 1 (P1)
     // Tank Selection GS & Leaderboard GS
-    public static String P1Name = "";
     public static double P1Wins;
     public static double P1Battles;
     public static double P1Winrate;
@@ -67,7 +60,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     
     // Player 2 (P2)
     // Tank Selection GS & Leaderboard GS
-    public static String P2Name = "";
     public static double P2Wins;
     public static double P2Battles;
     public static double P2Winrate;
@@ -128,14 +120,16 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static int increment = 10;
 	public static int fireIncrement = 10;
 	public static int fireYIncrement = -4;
-	public static int velocity = -50;
-	public static int gravity = 10;
+	public static int velocity;
+	public static int gravity = 2;
+	public static double reachTime; 
 
 	
     // For PVP End Screen GS
     public static int winnerPlayer;
     public static int loserPlayer;
     public static int PVPEndScreenFrameCounter = 0;
+    public static Map<String, BufferedImage> tankImagesEndScreen = new HashMap<>();
     
     // For PVP Leaderboard Screen GS
     public static int previousGS;
@@ -192,6 +186,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	if((mouseX>=710 && mouseX<=1715) && (mouseY>=1015 && mouseY<=1170)) {
         		gameState = 3;
         		mouseReset = true;
+
         	}
         }
         else if(gameState == 1){ // Credits GS
@@ -277,8 +272,8 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			// Draw names
 			g.setColor(new Color(0, 0, 0));
 			g.setFont(new Font("Arial", 1, 50));
-			g.drawString(P1Name, 615, 460);
-			g.drawString(P2Name, 615, 725);
+			g.drawString((playerStats.get("1Name")+""), 615, 460);
+			g.drawString((playerStats.get("2Name")+""), 615, 725);
         }
 				// ! -------------------------------------------------------------------- PVP Mode GS   --------------------------------------------------------------------
         else if(gameState == 3){ // ! PVP Mode GS
@@ -315,14 +310,14 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			g.setColor(PVPMethods.nameColor((Boolean)playerStats.get("1Dead"))); // Sets color
 			if(!gameOver && currentTurn == 1) g.setColor(new Color(159, 27, 255));
 			g.setFont(new Font("Arial", 1, 50));
-			g.drawString(PVPMethods.displayName(P1Name, 1), (int)playerStats.get("1X"), (int)playerStats.get("1Y")-120);
+			g.drawString(PVPMethods.displayName(playerStats.get("1Name")+"", 1), (int)playerStats.get("1X"), (int)playerStats.get("1Y")-120);
 			
 			// Drawing P2 tank movement, deaths, & name
 			g.drawImage(PVPMethods.drawPlayer(2), (int)playerStats.get("2X"), (int)playerStats.get("2Y")+tankFlippedLow, null);
 			// P2 Name
 			g.setColor(PVPMethods.nameColor((Boolean)playerStats.get("2Dead")));
 			if(!gameOver && currentTurn == 2) g.setColor(new Color(159, 27, 255));
-			g.drawString(PVPMethods.displayName(P2Name, 2), (int)playerStats.get("2X"), (int)playerStats.get("2Y")-120);
+			g.drawString(PVPMethods.displayName(playerStats.get("2Name")+"", 2), (int)playerStats.get("2X"), (int)playerStats.get("2Y")-120);
 			
 			
 			// HP:
@@ -343,12 +338,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			
 			
 			g.drawString(Main.bombYStart - (Main.power / 2) +"", 600, 500);
-			/*if(!isPaused && mouseX >= 2078 && mouseX <= 2269 && mouseY >= 933 && mouseY <= 1124) {
-				fire = true;
-				bombStarted = true;
-				mouseX = 0;
-				mouseY = 0;
-			}*/
 			if(fire && (bombY < 50)) {
 				fireYIncrement = 4;
 			}
@@ -370,16 +359,19 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 
 			
 			if(currentAbility == 1) {
-				currentAbilityName = "bomb";
+				currentAbilityName = "Bomb";
 				PVPMethods.bombDirection();
 				if(fire) { // Opened fire
 					g.drawImage(bomb, bombX, bombY, null);
 					baseDamage = 10;
 					bombX += fireIncrement;
-					bombY += velocity;
-					velocity += gravity;
+				    bombY += velocity; // Update the Y position based on velocity
+				    velocity += gravity;
+					
 					PVPMethods.bombPowerCheck();
 					PVPMethods.enemyHitCheck();
+					
+					if(bombY+115 >= 911) fire = false;
 				} 
 				
 			} else if(currentAbility == 2) {	
@@ -392,7 +384,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 					if(activated) { // lighting strike
 						if(!((int) playerStats.get(enemyPlayer+"X") >=(int) b.getX()+100 ||
 						   (int) playerStats.get(enemyPlayer+"X")+180 <=(int) b.getX()-100)){		
-							PVPMethods.dealDamage(baseDamage);
+							PVPMethods.dealDamage(100); // TODO 
 							speed = 2;
 							baseDamage = 6;
 							affected = enemyPlayer;
@@ -489,6 +481,14 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         else if(gameState == 4) { // PVP End Screen GS
         	g.drawImage(PVPEnd, 0, 0, null);
         	previousGS = 4;
+        	// Displaying winner	
+			g.setColor(new Color(255, 255, 255)); 
+			g.setFont(new Font("Arial", 1, 70));
+			g.drawString(PVPMethods.displayName((playerStats.get(winnerPlayer+"Name")+""), winnerPlayer), 1120, 310);
+			g.setFont(new Font("Arial", 1, 60));
+			g.drawString((playerStats.get(winnerPlayer+"Tank")+"").toUpperCase(), 1130, 1025);
+			g.drawImage(tankImagesEndScreen.get(playerStats.get(winnerPlayer+"Tank")+""), 978, 472, null);
+        	
         	// Tank resets
         	playerStats.put("1X", 10);
     		playerStats.put("1Y", 800);
@@ -511,18 +511,30 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			power = 0;
 			powerBarHeight = 0;
 			PVPEndScreenFrameCounter++;
-        	//TODO display winner player name, tank visual & tank name
+
+			//TODO display winner player name, tank visual & tank name
 			
         }
         else if(gameState == 5){ // PVP Leaderboard GS
         	g.drawImage(PVPLeaderboard, 0, 0, null);
         	leaderboardScreenFrameCounter++;
+        	// Resets after PVP End screen
+			winnerPlayer = 0;
+			loserPlayer = 0;
+			
         	//TODO display top 3 players by wins & show their winrate (textfile streaming)
         }
 	}
     
     // Mouse and Keyboard Methods
     public static void main(String[] args) throws IOException{
+			// Leaderboard Textfile Streaming
+			Scanner players_inputfile = new Scanner(new File("players.txt"));
+			PrintWriter players_outputFile = new PrintWriter(new FileWriter("players.txt"));
+
+			players_outputFile.println(playerStats.get("1Name")+"");
+
+
     	// Disable Java from automatically scaling content based on system’s DPI settings
     	System.setProperty("sun.java2d.uiScale", "1.0");
     	
@@ -535,12 +547,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     	PVPPause 		= ImageIO.read(new File("PVP Pause Screen.png"));
     	PVPEnd 			= ImageIO.read(new File("GameStates/GS4 - PVP End Screen.png"));
     	PVPLeaderboard 	= ImageIO.read(new File("GameStates/GS5 - PVP Mode Leaderboard.png"));
-    	// Tanks
-    	titanTank 		= ImageIO.read(new File("Tanks/Titan Tank.png"));
-		mouseTank		= ImageIO.read(new File("Tanks/Mouse Tank.png"));
-		ironcladTank 	= ImageIO.read(new File("Tanks/Ironclad Tank.png"));
-		sentinelTank 	= ImageIO.read(new File("Tanks/Sentinel Tank.png"));
-		mouseTankMini	= ImageIO.read(new File("Tanks/Mouse Tank mini.png"));
+    	
 		// Obstacles
 		rock 			= ImageIO.read(new File("Obstacles/rock.png"));
 
@@ -559,12 +566,14 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     	tankSelectLocations.put("SentinelY", 766);
     	
 		// For PVP Mode GS
-    	tankImages.put("Titan", titanTank);
-		tankImages.put("Mouse", mouseTank);
-		tankImages.put("Ironclad", ironcladTank);
-		tankImages.put("Sentinel", sentinelTank);
-		tankImages.put("Mouse Mini", mouseTankMini);
+    	tankImages.put("Titan", ImageIO.read(new File("Tanks/Titan Tank.png")));
+		tankImages.put("Mouse", ImageIO.read(new File("Tanks/Mouse Tank.png")));
+		tankImages.put("Ironclad", ImageIO.read(new File("Tanks/Ironclad Tank.png")));
+		tankImages.put("Sentinel", ImageIO.read(new File("Tanks/Sentinel Tank.png")));
+		tankImages.put("Mouse Mini", ImageIO.read(new File("Tanks/Mouse Tank mini.png")));
 		
+		playerStats.put("1Name", "");
+		playerStats.put("2Name", "");
 
 		playerStats.put("1X", 10);
 		playerStats.put("1Y", 800);
@@ -579,6 +588,13 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 		playerStats.put("2Tank", "Mouse");
 		playerStats.put("1HP", 100);
 		playerStats.put("2HP", 100);
+		
+		// For PVP End Screen
+		tankImagesEndScreen.put("Titan", ImageIO.read(new File("Tanks - End Screen Versions/Titan Tank.png")));
+		tankImagesEndScreen.put("Mouse", ImageIO.read(new File("Tanks - End Screen Versions/Mouse Tank.png")));
+		tankImagesEndScreen.put("Ironclad", ImageIO.read(new File("Tanks - End Screen Versions/Ironclad Tank.png")));
+		tankImagesEndScreen.put("Sentinel", ImageIO.read(new File("Tanks - End Screen Versions/Sentinel Tank.png")));
+		
 		
     	// JFrame and JPanel
     	JFrame frame = new JFrame("Juggernaut Assault");
@@ -640,20 +656,18 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     	else if(gameState == 2 ){
 			// Entering P1 name
 			if(isTypingP1){
-				if(P1Name.length() <= 10 && Character.isLetterOrDigit(e.getKeyChar()))
-					// also checks so name only includes letters or digits. esc, shift etc 
-					// won't be registered. Allows for 11 characters
-					P1Name += e.getKeyChar();
-				if(e.getKeyCode() == 8 && P1Name.length()>0) { // Deleting letters
-					P1Name = P1Name.substring(0, P1Name.length()-1);
+				if((playerStats.get("1Name")+"").length() <= 10 && Character.isLetterOrDigit(e.getKeyChar()))
+					playerStats.put("1Name", (playerStats.get("1Name")+"")+ e.getKeyChar());
+				if(e.getKeyCode() == 8 && (playerStats.get("1Name")+"").length()>0) { // Deleting letters
+					playerStats.put("1Name", (playerStats.get("1Name")+"").substring(0, (playerStats.get("1Name")+"").length()-1));
 				}	
 			}
 			else if(isTypingP2){
-				if(P2Name.length() <= 10 && Character.isLetterOrDigit(e.getKeyChar()))
-					P2Name += e.getKeyChar();
-				if(e.getKeyCode() == 8 && P2Name.length()>0) { 
-					P2Name = P2Name.substring(0, P2Name.length()-1);
-				}
+				if((playerStats.get("2Name")+"").length() <= 10 && Character.isLetterOrDigit(e.getKeyChar()))
+					playerStats.put("2Name", (playerStats.get("2Name")+"")+ e.getKeyChar());
+				if(e.getKeyCode() == 8 && (playerStats.get("2Name")+"").length()>0) { // Deleting letters
+					playerStats.put("2Name", (playerStats.get("2Name")+"").substring(0, (playerStats.get("2Name")+"").length()-1));
+				}	
 			}
 
 			// Exiting GS

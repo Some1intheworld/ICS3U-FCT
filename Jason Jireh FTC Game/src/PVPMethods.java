@@ -70,24 +70,22 @@ public class PVPMethods {
 		public static BufferedImage drawPlayerMouse(int generatePlayer) {
 		// Generates players' tanks, whether facing right, left, or flipped in those orientations
 			BufferedImage drawnImage = new BufferedImage(180, 134, BufferedImage.TYPE_INT_RGB);
-			if(Main.P1Size.equals("small")) { 
-				if((Boolean)Main.playerStats.get(generatePlayer+"Dead") && (Boolean)Main.playerStats.get(generatePlayer+"GoingRight")) { // P1 death flip facing right
-						drawnImage = flipImageVertical(flipImageHorizontal(Main.tankImages.get(Main.playerStats.get("Tank Mini"))));
-						Main.tankFlippedLow = 25;
-					}
-					else if ((Boolean)Main.playerStats.get(generatePlayer+"Dead")) { // death facing left
-						drawnImage = flipImageVertical(Main.rock);
-						Main.tankFlippedLow = 25;
-					}
-					else if((Boolean)Main.playerStats.get(generatePlayer+"GoingRight")) { // Alive facing right
-						drawnImage = flipImageHorizontal(Main.rock);
-						Main.tankFlippedLow = 0;
-					}
-					else { // Alive facing left
-						drawnImage = Main.tankImages.get(Main.playerStats.get("Tank Mini"));
-						Main.tankFlippedLow = 0;
-					}
-			} else {
+			/*
+			 * if(Main.P1Size.equals("small")) {
+			 * if((Boolean)Main.playerStats.get(generatePlayer+"Dead") &&
+			 * (Boolean)Main.playerStats.get(generatePlayer+"GoingRight")) { // P1 death
+			 * flip facing right drawnImage =
+			 * flipImageVertical(flipImageHorizontal(Main.tankImages.get(Main.playerStats.
+			 * get("Tank Mini")))); Main.tankFlippedLow = 25; } else if
+			 * ((Boolean)Main.playerStats.get(generatePlayer+"Dead")) { // death facing left
+			 * drawnImage = flipImageVertical(Main.rock); Main.tankFlippedLow = 25; } else
+			 * if((Boolean)Main.playerStats.get(generatePlayer+"GoingRight")) { // Alive
+			 * facing right drawnImage = flipImageHorizontal(Main.rock); Main.tankFlippedLow
+			 * = 0; } else { // Alive facing left drawnImage =
+			 * Main.tankImages.get(Main.playerStats.get("Tank Mini")); Main.tankFlippedLow =
+			 * 0; }
+			 */
+			//} else {
 				if((Boolean)Main.playerStats.get(generatePlayer+"Dead") && (Boolean)Main.playerStats.get(generatePlayer+"GoingRight")) { // P1 death flip facing right
 					drawnImage = flipImageVertical(flipImageHorizontal(Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank"))));
 					Main.tankFlippedLow = 25;
@@ -103,7 +101,7 @@ public class PVPMethods {
 				else { // Alive facing left
 					drawnImage = Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank"));
 					Main.tankFlippedLow = 0;
-				}
+				//}
 		}
 		
 		
@@ -129,17 +127,7 @@ public class PVPMethods {
 		Main.bombYStart = Main.bombY;
 		Main.bombDirectionRight = (Boolean)Main.playerStats.get(Main.currentTurn+"GoingRight");
 	}
-	public static void bombDirection() {
-		// Determines fireIncrement for direction of bomb (moving left or right),
-		// direction obtained from bombStartAndDirectionLocate().
-		// Executes direction through fireIncrement
-		if(Main.bombDirectionRight) { // tank facing right when fired
-			Main.fireIncrement = 10;
-		}
-		else{ // Tank facing left when fired
-			Main.fireIncrement = -10;
-		}
-	}
+
 	public static void bombPowerCheck() {
 		// Checks if the bomb is out of power from the power determined in powerRangeDeterminer()
 		// Checks both the forward distance and backwards distance as bomb can be shot
@@ -189,7 +177,11 @@ public class PVPMethods {
 	
 	public static String displayName(String name, int player) {
 		// displays player name. if name is empty, display "Player #"
-		if(name == "") return "Player " + player;
+		if(name.equals("")) {
+			//System.out.println("Player " + player);
+			return "Player " + player;
+		}
+			
 		return name;
 	}
 	public static Color nameColor(boolean dead) {
@@ -197,9 +189,25 @@ public class PVPMethods {
 		if(dead) return new Color(200, 0, 0);
 		return new Color(255, 255, 255);
 	}
-	public static void velocityDeterminer(){
-		Main.velocity = 100;
-	}
+   public static void velocityDeterminer(){
+        Main.reachTime = Math.sqrt((2 * Main.power) / Main.gravity); // Time to reach the target
+        if(Main.power > 500) {
+           Main.velocity = (int) ((Main.gravity * Main.reachTime / 2 -10) * -1); 
+        } else if(Main.power < 500) {
+            Main.velocity = (int) ((Main.gravity * Main.reachTime / 2 -25) * -1); 
+        }
+        Main.gravity = 2; 
+    }
+
+    public static void bombDirection() {
+        // Determines fireIncrement for direction of bomb (moving left or right),
+        // Executes direction through fireIncrement
+        if(Main.bombDirectionRight) { // Tank facing right when fired
+            Main.fireIncrement = (int) (Main.power / Main.reachTime); // Adjust to cover desired distance
+        } else { // Tank facing left when fired
+            Main.fireIncrement = -(int) (Main.power / Main.reachTime); // Adjust to cover desired distance
+        }
+    }
 	
 	public static void lighting() {
 	}
