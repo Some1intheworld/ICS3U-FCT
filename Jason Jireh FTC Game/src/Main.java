@@ -3,7 +3,6 @@ import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
-
 import javax.imageio.ImageIO;
 import java.awt.event.*;
 
@@ -36,7 +35,9 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static BufferedImage rock;
 	public static BufferedImage wall;
 	public static BufferedImage shield;
-    
+    public static Image explosion;
+    public static boolean explode;
+	
     // ! Mouse/Keyboard Events
     public static int mouseX;
     public static int mouseY;
@@ -295,8 +296,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	}
         	if(!isPaused) timer++;
         	
-        	// Check if dead
-        	PVPMethods.deathCheck();
+        	
         	
         	// Player movement	
         	PVPMethods.playerMovement();
@@ -359,14 +359,19 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 					PVPMethods.enemyHitCheck();
 					
 					if(bombY+115 >= 950) {
+						explode = true;
 						fire = false;
 						bombIsInAir = false;
 						PVPMethods.changeTurns();
 					}
-				} 
-				
-				
-			} else if(currentAbility == 2  && !isPaused) {	
+					if(explode) { 
+						g.drawImage(explosion, bombX, bombY, null); 
+						explode = false;
+					}	
+				}
+			} 
+			else if(currentAbility == 2  && !isPaused)
+			{	
 				// ------ Titan Lightning Strike -------JJ
 				if(playerStats.get(currentTurn+"Tank") == "Titan") {
 					currentAbilityName = "Lightning Strike";
@@ -460,15 +465,16 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 						}
 					}
 				}
-			} 
-			
 			}
-		
+			// Check if dead
+	    	PVPMethods.deathCheck();
 			
 			// PVP Pause screen
         	if(isPaused) { 
         		g.drawImage(PVPPause, 0, 0, null);
         	}
+		}
+	     
         
         else if(gameState == 4) { // PVP End Screen GS
         	g.drawImage(PVPEnd, 0, 0, null);
@@ -521,7 +527,20 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	}
     
     // Mouse and Keyboard Methods
-    public static void main(String[] args) throws IOException{
+    @SuppressWarnings("deprecation")
+	public static void main(String[] args) throws IOException{
+    	// Disable Java from automatically scaling content based on system’s DPI settings
+    	System.setProperty("sun.java2d.uiScale", "1.0");
+    	// JFrame and JPanel
+    	JFrame frame = new JFrame("Juggernaut Assault");
+        Main panel = new Main();
+        frame.setIconImage(iconImg.getImage());
+        frame.add(panel);
+        frame.pack();
+        frame.setVisible(true);
+	//  frame.setResizable(false);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        
 			// Leaderboard Textfile Streaming
 			Scanner players_inputfile = new Scanner(new File("players.txt"));
 			PrintWriter players_outputFile = new PrintWriter(new FileWriter("players.txt"));
@@ -529,8 +548,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			players_outputFile.println(playerStats.get("1Name")+"");
 
 
-    	// Disable Java from automatically scaling content based on system’s DPI settings
-    	System.setProperty("sun.java2d.uiScale", "1.0");
+    	
     	
     	// Image Importation:
     	// GS
@@ -544,7 +562,9 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     	
 		// Obstacles
 		rock 			= ImageIO.read(new File("Obstacles/rock.png"));
-
+		
+		explosion 		= ImageIO.read(new File("explosion.png"));
+		
 		// Abilities
     	bomb 			= ImageIO.read(new File("Abilities/bomb.png"));
     	shield 			= ImageIO.read(new File("Abilities/shield.png"));
@@ -590,15 +610,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 		tankImagesEndScreen.put("Sentinel", ImageIO.read(new File("Tanks - End Screen Versions/Sentinel Tank.png")));
 		
 		
-    	// JFrame and JPanel
-    	JFrame frame = new JFrame("Juggernaut Assault");
-        Main panel = new Main();
-        frame.setIconImage(iconImg.getImage());
-        frame.add(panel);
-        frame.pack();
-        frame.setVisible(true);
-	//  frame.setResizable(false);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    	
     }
     
     //Mandatory methods

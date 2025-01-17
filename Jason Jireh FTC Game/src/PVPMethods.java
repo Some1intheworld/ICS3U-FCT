@@ -130,11 +130,12 @@ public class PVPMethods {
 
 	public static void enemyHitCheck() {
 		// Bomb collision
-		if(Main.fire && !(Main.bombX>=(int)Main.playerStats.get(Main.enemyPlayer+"X")+180 ||
-			Main.bombX+120<=(int)Main.playerStats.get(Main.enemyPlayer+"X") ||
-			Main.bombY>=(int)Main.playerStats.get(Main.enemyPlayer+"Y")+134 ||
-			Main.bombY+115<=(int)Main.playerStats.get(Main.enemyPlayer+"Y")))
+		if(Main.fire && !(Main.bombX>=(int)Main.playerStats.get(Main.enemyPlayer+"X")+160 ||
+			Main.bombX+120<=(int)Main.playerStats.get(Main.enemyPlayer+"X")+20 ||
+			Main.bombY>=(int)Main.playerStats.get(Main.enemyPlayer+"Y")+114 ||
+			Main.bombY+115<=(int)Main.playerStats.get(Main.enemyPlayer+"Y")+20))
 		{
+			Main.explode = true;
 			dealDamage(Main.baseDamage);
 			Main.fire = false;
 			Main.bombIsInAir = false;
@@ -149,8 +150,9 @@ public class PVPMethods {
 	}
 	public static void deathCheck() {
 		// Checks if any player is dead and changes the necessary variables
-		for(int targetPlayer = 1; targetPlayer < 3; targetPlayer++) {
-			if((int)Main.playerStats.get(targetPlayer+"HP") <= 0) {
+		for(int targetPlayer = 1; targetPlayer <= 2; targetPlayer++) {
+			if((int)Main.playerStats.get(targetPlayer+"HP") <= 0) 
+			{
 				Main.playerStats.put(targetPlayer+"Dead", true);
 				Main.winnerPlayer = (targetPlayer==1)? 2:1;
 				Main.loserPlayer = targetPlayer;
