@@ -5,6 +5,7 @@ import java.io.*;
 import java.util.*;
 import javax.imageio.ImageIO;
 import java.awt.event.*;
+import java.util.ArrayList;
 
 public class Main extends JPanel implements KeyListener, MouseListener, Runnable {
     // JFrame icon
@@ -35,6 +36,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static BufferedImage rock;
 	public static BufferedImage wall;
 	public static BufferedImage shield;
+	public static BufferedImage barrel;
 	
     // ! Mouse/Keyboard Events
     public static int mouseX;
@@ -104,8 +106,13 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static boolean bombIsInAir;
 	public static boolean enemyHit;
 	public static BufferedImage scorchMark;
-		public static int crateX = 800;
-	public static int crateY = 500;
+	public static int crateX = 1000;
+	public static int crateY = 620;
+
+	public static int barrelX = 600;
+	public static int barrelY = 620;
+	
+
 	
 	public static int powerBarHeight;
 	
@@ -117,6 +124,9 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     public static BufferedImage explosion;
     public static boolean explode;
     public static BufferedImage aiming;
+    public static boolean scorched;
+    
+    public static ArrayList<int[]> scorchLocations = new ArrayList<>();
 	
 	public static boolean damageReductionDone;
 	
@@ -290,27 +300,42 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	g.setColor(new Color(0, 0, 0));
         	g.setFont(new Font("Arial", 1, 40));
         	g.drawString(power+"", 330, 350);
+
+			g.setColor(new Color(255, 255, 255));
+			g.setFont(new Font("Arial", 0, 30));
+			g.drawString("Power", 333, 530);
+
         	g.setColor(new Color(0, 0, 0));
         	g.setFont(new Font("Arial", 1, 50));
         	g.drawString("Time left: " + (10 - (timer /50))+"", 1130, 110);
         	
-        	
+        	// Showing scorch marks
+			if(scorched) {
+				scorchLocations.add(new int[]{bombX, bombY+70});
+				scorched = false;
+			}
+			for (int[] array : scorchLocations) {
+				g.drawImage(scorchMark, array[0], array[1], null);
+	        }
+
         	// Timer
         	if(timer >= 500) {
         		PVPMethods.changeTurns();
         		timer = 0;
         	}
         	if(!isPaused && !gameOver) timer++;
-        	
-        	
-        	
+        		
         	// Player movement	
         	PVPMethods.playerMovement();
 
 
 
-					// Obstacles
+				/*	// Obstacles
+					g.setColor(new Color(250, 102, 83));
 					g.fillRect(crateX, crateY, 300, 300);
+
+					g.setColor(new Color(0, 0, 0));
+					g.fillRect(barrelX, barrelY, 300, 300);*/
         	
 			// Drawing P1 tank movement, deaths, & name
 			g.drawImage(PVPMethods.drawPlayerMouse(1), (int)playerStats.get("1X"), (int)playerStats.get("1Y")+tankFlippedLow, null);
@@ -319,7 +344,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			if(!gameOver && currentTurn == 1) {
 				g.setColor(new Color(255, 214, 0));
 				g.setFont(new Font("Arial", 0, 30));
-				g.drawString("Your Turn!", (int)playerStats.get("1X"), (int)playerStats.get("1Y")-190);
+				g.drawString("Your Turn!", (int)playerStats.get("1X")+16, (int)playerStats.get("1Y")-190);
 				g.setColor(new Color(159, 27, 255));
 			}
 			g.setFont(new Font("Arial", 1, 50));
@@ -332,7 +357,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			if(!gameOver && currentTurn == 2) {
 				g.setColor(new Color(255, 214, 0));
 				g.setFont(new Font("Arial", 0, 30));
-				g.drawString("Your Turn!", (int)playerStats.get("2X"), (int)playerStats.get("2Y")-190);
+				g.drawString("Your Turn!", (int)playerStats.get("2X")+16, (int)playerStats.get("2Y")-190);
 				g.setColor(new Color(159, 27, 255));
 			}
 			g.setFont(new Font("Arial", 1, 50));
@@ -342,10 +367,9 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			// HP:
         	g.setColor(new Color(150, 0, 0));
 
-			if(!gameOver){
-				g.fillRect(500, 21, (int)playerStats.get("1HP")*6-51, 104);
-				g.fillRect(2060, 21, -(int)playerStats.get("2HP") *6+51, 104);
-			}
+			if(!(Boolean)playerStats.get("1Dead")) g.fillRect(500, 21, (int)playerStats.get("1HP")*6-51, 104);
+			if(!(Boolean)playerStats.get("2Dead")) g.fillRect(2060, 21, -(int)playerStats.get("2HP") *6+51, 104);
+			
         	g.setColor(new Color(0, 0, 0));
 			g.drawString((int)playerStats.get("1HP") +"", 683, 90);
 			g.drawString((int)playerStats.get("2HP") + "", 1792, 90);
@@ -371,7 +395,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 				PVPMethods.bombStartAndDirectionLocate();
 				bombStarted = false;
 			}
-			
+
 			if(currentAbility == 1 && !isPaused && !gameOver) {
 				currentAbilityName = "Bomb";
 				PVPMethods.bombDirection();
@@ -391,20 +415,21 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 					
 					if(bombY+115 >= 950 && !enemyHit) {
 						explode = true;
+						scorched = true;
 						fire = false;
 						bombIsInAir = false;
-						PVPMethods.changeTurns();
+						PVPMethods.changeTurns();	
 					}
 					if(explode) { 
+						g.drawImage(explosion, bombX, bombY-30, null);
 						enemyHit = false;
-						g.drawImage(explosion, bombX, bombY, null); 
 						explode = false;
 					}	
 				}
 			} 
 			else if(currentAbility == 2  && !isPaused && !gameOver)
 			{	
-				// ------ Titan Lightning Strike -------
+				// ------ Titan Lightning Strike -------JJ
 				if(playerStats.get(currentTurn+"Tank") == "Titan") {
 					currentAbilityName = "Lightning Strike";
 					Graphics2D g2 = (Graphics2D) g.create();
@@ -415,7 +440,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 					if(activated) { // lightning strike
 						if(!((int) playerStats.get(enemyPlayer+"X") >=(int) b.getX()+100 ||
 						   (int) playerStats.get(enemyPlayer+"X")+180 <=(int) b.getX()-100)){		
-							PVPMethods.dealDamage(baseDamage);
+							PVPMethods.dealDamage(100);
 							speed = 2;
 							baseDamage = 6;
 							affected = enemyPlayer;
@@ -427,9 +452,9 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 					}
 				}
 				
-				// ------ Ironclad Damage Reduction ------- 
+				// ------ Ironclad Damage Reduce ------- JJ
 				else if(playerStats.get(currentTurn+"Tank") == "Ironclad") {
-					currentAbilityName = "Damage Reduction";
+					currentAbilityName = "Damage Reduce";
 					if(activated) {
 						frameCounter += 1;
 						if(!damageReductionDone) {
@@ -502,6 +527,9 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			}
 			// Check if dead
 	    	PVPMethods.deathCheck();
+	    	if(gameOver) {
+	    		
+	    	}
 			
 			// PVP Pause screen
         	if(isPaused) { 
@@ -519,7 +547,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			g.drawString(PVPMethods.displayName((playerStats.get(winnerPlayer+"Name")+""), winnerPlayer), 1120, 310);
 			g.setFont(new Font("Arial", 1, 60));
 			g.drawString((playerStats.get(winnerPlayer+"Tank")+"").toUpperCase(), 1130, 1025);
-			g.drawImage(tankImagesEndScreen.get(playerStats.get(winnerPlayer+"Tank")+""), 978, 492, null);
+			g.drawImage(tankImagesEndScreen.get(playerStats.get(winnerPlayer+"Tank")+""), 978, 500, null);
         	
         	// Tank resets
         	playerStats.put("1X", 10);
@@ -547,6 +575,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			fireIncrement = 10;
 			increment = 40;
 			gravity = 2;
+			scorchLocations.clear();
 
 			PVPEndScreenFrameCounter++;		
         }
@@ -566,6 +595,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     	// Disable Java from automatically scaling content based on system’s DPI settings
     	System.setProperty("sun.java2d.uiScale", "1.0");
     	// JFrame and JPanel
+    	
     	JFrame frame = new JFrame("Juggernaut Assault");
         Main panel = new Main();
         frame.setIconImage(iconImg.getImage());
@@ -581,8 +611,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 
 			players_outputFile.println(playerStats.get("1Name")+"");
 
-
-    	
     	
     	// Image Importation:
     	// GS
@@ -598,6 +626,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 		rock 			= ImageIO.read(new File("Obstacles/rock.png"));
 		
 		explosion 		= ImageIO.read(new File("Abilities/explosion.png"));
+		
 		
 		// Abilities
     	bomb 			= ImageIO.read(new File("Abilities/bomb.png"));
@@ -644,8 +673,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 		tankImagesEndScreen.put("Mouse", ImageIO.read(new File("Tanks - End Screen Versions/Mouse Tank.png")));
 		tankImagesEndScreen.put("Ironclad", ImageIO.read(new File("Tanks - End Screen Versions/Ironclad Tank.png")));
 		tankImagesEndScreen.put("Sentinel", ImageIO.read(new File("Tanks - End Screen Versions/Sentinel Tank.png")));
-		
-		
     	
     }
     
@@ -724,7 +751,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			if((e.getKeyChar() == 'd' || e.getKeyCode() == KeyEvent.VK_RIGHT) && !isPaused && !gameOver) {
 				dPressed = true;
 			}
-			if(e.getKeyChar() == 32 && !isPaused) {
+			if(e.getKeyChar() == 32 && !isPaused && !gameOver) {
 				if(currentAbility == 1 && !bombIsInAir) {
 					fire = true;
 					bombStarted = true;
@@ -738,13 +765,13 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 
 			}
 			// Dev keys
-    		if(e.getKeyChar() == '=' && !isPaused) { // dev key for finishing in PVP mode
+    		if(e.getKeyChar() == '=' && !isPaused && !gameOver) { // dev key for finishing in PVP mode
     			gameState = 4;
     		}
-    		if(e.getKeyChar() == '/' && !isPaused) { // dev key for player turn switch
+    		if(e.getKeyChar() == '/' && !isPaused && !gameOver) { // dev key for player turn switch
     			PVPMethods.changeTurns();
     		}
-    		if(e.getKeyChar() == '0' && !isPaused) { // dev key for killing both tanks & reviving
+    		if(e.getKeyChar() == '0' && !isPaused && !gameOver) { // dev key for killing both tanks & reviving
     			playerStats.put("1Dead", !(Boolean)playerStats.get("1Dead"));
     			playerStats.put("2Dead", !(Boolean)playerStats.get("2Dead"));
     			gameOver = !gameOver;

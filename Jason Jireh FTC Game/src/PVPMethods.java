@@ -35,11 +35,11 @@ public class PVPMethods {
 	public static void playerMovement() {
 		// Moves players using their coordinates and direction from playerStats map
 		// based on which turn it is 
-		if(Main.aPressed) {
+		if(Main.aPressed && (int)Main.playerStats.get(Main.currentTurn+"X") >= -50) {
 			Main.playerStats.put(Main.currentTurn+"X", (int)Main.playerStats.get(Main.currentTurn+"X") - Main.speed);
     		Main.playerStats.put(Main.currentTurn+"GoingRight", false);
     	}
-    	if(Main.dPressed) {
+    	if(Main.dPressed && (int)Main.playerStats.get(Main.currentTurn+"X")+180 <= 2550) {
     		Main.playerStats.put(Main.currentTurn+"X", (int)Main.playerStats.get(Main.currentTurn+"X") + Main.speed);
     		Main.playerStats.put(Main.currentTurn+"GoingRight", true);
 		}
@@ -147,17 +147,18 @@ public class PVPMethods {
 	
 		}
 		// !------------ Bomb collision with obstacles
-		// if(Main.fire && !(Main.bombX>=Main.crateX +512 ||
-		// 		Main.bombX+100<= Main.crateX ||
-		// 		Main.bombY>= Main.crateY + 512||
-		// 		Main.bombY+80<=(int)Main.crateY))
-		// 	{
-		// 		Main.explode = true;
-		// 		Main.fire = false;
-		// 		Main.bombIsInAir = false;
-		// 		changeTurns();
+		/*if(Main.fire && !(Main.bombX>=Main.crateX +300 ||
+				Main.bombX+100<= Main.crateX ||
+				Main.bombY>= Main.crateY + 300||
+				Main.bombY+80<=Main.crateY))
+			{
+				Main.enemyHit = true;
+				Main.explode = true;
+				Main.fire = false;
+				Main.bombIsInAir = false;
+				changeTurns();
 		
-		// 	}
+			}*/
 	}
 	
 	public static void dead() {
