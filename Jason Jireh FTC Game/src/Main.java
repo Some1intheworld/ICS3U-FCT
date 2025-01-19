@@ -36,7 +36,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static BufferedImage rock;
 	public static BufferedImage wall;
 	public static BufferedImage shield;
-	public static BufferedImage barrel;
+	public static BufferedImage asteroid;
 	
     // ! Mouse/Keyboard Events
     public static int mouseX;
@@ -107,12 +107,19 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static boolean enemyHit;
 	public static BufferedImage scorchMark;
 	public static int crateX = 1000;
-	public static int crateY = 620;
+	public static int crateY = 560;
 
-	public static int barrelX = 600;
-	public static int barrelY = 620;
+	public static int asteroidX = 400;
+	public static int asteroidY = 600;
 	
-
+	public static boolean asteroid1 = true;
+	public static boolean asteroid2 = true;
+	public static boolean asteroid3 = false;
+	
+	public static int fireFrameCounter;
+	public static BufferedImage[] tankFireImageArr = new BufferedImage[5];
+	public static boolean fireDrawn;
+	public static int tankFireIndex;
 	
 	public static int powerBarHeight;
 	
@@ -148,6 +155,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     // For PVP Leaderboard Screen GS
     public static int previousGS;
     public static int leaderboardScreenFrameCounter = 0;
+    public static String[] leaderboardPlayers = new String[4];
     
     // JPanel Settings
     public Main(){
@@ -200,7 +208,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	if((mouseX>=710 && mouseX<=1715) && (mouseY>=1015 && mouseY<=1170)) {
         		gameState = 3;
         		mouseReset = true;
-
         	}
         }
         else if(gameState == 1){ // Credits GS
@@ -328,14 +335,13 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	// Player movement	
         	PVPMethods.playerMovement();
 
+        	// Obstacles
+        	g.drawImage(crate, crateX, crateY, null);
+        	if(asteroid1) g.drawImage(asteroid, 400, asteroidY, null);
+        	if(asteroid2) g.drawImage(asteroid, 1650, asteroidY, null);
+        	if(asteroid3) g.drawImage(asteroid, asteroidX, asteroidY, null);
+        	
 
-
-				/*	// Obstacles
-					g.setColor(new Color(250, 102, 83));
-					g.fillRect(crateX, crateY, 300, 300);
-
-					g.setColor(new Color(0, 0, 0));
-					g.fillRect(barrelX, barrelY, 300, 300);*/
         	
 			// Drawing P1 tank movement, deaths, & name
 			g.drawImage(PVPMethods.drawPlayerMouse(1), (int)playerStats.get("1X"), (int)playerStats.get("1Y")+tankFlippedLow, null);
@@ -440,8 +446,9 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 					if(activated) { // lightning strike
 						if(!((int) playerStats.get(enemyPlayer+"X") >=(int) b.getX()+100 ||
 						   (int) playerStats.get(enemyPlayer+"X")+180 <=(int) b.getX()-100)){		
+							//PVPMethods.dealDamage(baseDamage / 2);
 							PVPMethods.dealDamage(100);
-							speed = 2;
+							speed = 1;
 							baseDamage = 6;
 							affected = enemyPlayer;
 						}
@@ -473,20 +480,33 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 					}
 				}
 				
-				// ------- Mouse Shrink -------
+				// ------- Mouse Obstacle Placer -------
 				else if(playerStats.get(currentTurn+"Tank") == "Mouse") {
-					currentAbilityName = "Shrink";
-					if(activated) {
-						affected = currentTurn;
-						if(currentTurn == 1) {
-							P1Size = "small";
-							affected = 1;
+					currentAbilityName = "Obstacle";
+					Graphics2D g2 = (Graphics2D) g.create();
+		        	g2.setStroke(new BasicStroke(3));
+					PointerInfo a = MouseInfo.getPointerInfo();
+					Point b = a.getLocation();
+					g2.setColor(new Color(110, 110, 110));
+					g2.fillOval((int) b.getX()-100, 860, 488, 100);
+					int playerX = (int)Main.playerStats.get(Main.currentTurn + "X");
+					int enemyX = (int)Main.playerStats.get(Main.enemyPlayer + "X");
+					g.drawString((((int) b.getX()-100 - 90 <= playerX + 180 && (int) b.getX()-100 + 90 >= playerX) || 
+					((int) b.getX()-100 - 90 <= enemyX + 180 && (int) b.getX()-100 + 90 >= enemyX)) + "", 1000, 1000);
+				
+					if(activated) { 
+						if(true) { // TODO: only allow to place it it's not on player or enemy
+							asteroidX = (int) b.getX()-100;
+							asteroid3 = true;
+							activated = false;
+							PVPMethods.changeTurns();
+						} else {
+							activated = false;
 						}
-						else if(currentTurn == 2) {
-							P2Size = "small";
-							affected = 2;
-						}
-					}
+
+
+						
+					} 
 				}
 				
 				// ------- Sentinel electrogun ----------
@@ -498,7 +518,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 					if(!activated && (Boolean)playerStats.get(currentTurn+"GoingRight")) 
 						g.fillRect((int) playerStats.get(currentTurn+"X") + 180, (int) b.getY(), 3000, 20);
 					else if (!activated) 
-						g.fillRect((int) playerStats.get(currentTurn+"X")-3000, (int) b.getY(), 3000, 20);
+						g.fillRect((int) playerStats.get(currentTurn+"X"), (int) b.getY(), -3000, 20);
 					
 					if(activated) { 
 						if(!electrogunInitiated) {
@@ -507,14 +527,23 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 						electrogunInitiated = true;
 						}
 						g.setColor(new Color(255, 255, 255));
-						// TODO add other direction
-						g.fillRect(electrogunStartX + 180, electrogunStartY, electrogunLength, 20);
-						if(!((int)b.getY()+20 <= (int) playerStats.get(enemyPlayer+"Y")||
-							(int) b.getY() >= (int) playerStats.get(enemyPlayer+"Y")+134)){		
-							PVPMethods.dealDamage(baseDamage/5);
-						}
+						if((Boolean)playerStats.get(currentTurn+"GoingRight")) g.fillRect(electrogunStartX + 180, electrogunStartY, electrogunLength, 20);
+						else g.fillRect(electrogunStartX, electrogunStartY, electrogunLength, 20);
+							
 						if((Boolean)playerStats.get(currentTurn+"GoingRight")) electrogunLength += 800;
 						else electrogunLength -= 800;
+						
+						if(!((int)b.getY()+20 <= (int) playerStats.get(enemyPlayer+"Y")||
+								(int) b.getY() >= (int) playerStats.get(enemyPlayer+"Y")+134)
+								&& (Boolean)playerStats.get(currentTurn+"GoingRight") &&
+								(int)playerStats.get(enemyPlayer+"X")>=(int)playerStats.get(currentTurn+"X")){		
+								PVPMethods.dealDamage(baseDamage/5);
+						}
+						else if(!((int)b.getY()+20 <= (int) playerStats.get(enemyPlayer+"Y")||
+								(int) b.getY() >= (int) playerStats.get(enemyPlayer+"Y")+134) && !(Boolean)playerStats.get(currentTurn+"GoingRight")
+								&& (int)playerStats.get(enemyPlayer+"X")<=(int)playerStats.get(currentTurn+"X")){		
+								PVPMethods.dealDamage(baseDamage/5);
+						}
 						if(electrogunLength >= 2500 || electrogunLength <= -2500) {
 							activated = false;
 							electrogunLength = 0;
@@ -527,8 +556,18 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			}
 			// Check if dead
 	    	PVPMethods.deathCheck();
-	    	if(gameOver) {
-	    		
+	    	
+	    	if(gameOver && !fireDrawn) {
+	    		fireFrameCounter++;
+	    		if(fireFrameCounter%4==0) {
+	    			tankFireIndex = fireFrameCounter/4;
+	    		}
+    			g.drawImage(tankFireImageArr[tankFireIndex], (int)playerStats.get(loserPlayer+"X"), (int)playerStats.get(loserPlayer+"Y")-32, null);
+	    		if(fireFrameCounter == 16) {
+	    			fireDrawn = true;
+	    			tankFireIndex = 0;
+	    			fireFrameCounter = 0;
+	    		}
 	    	}
 			
 			// PVP Pause screen
@@ -576,16 +615,41 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			increment = 40;
 			gravity = 2;
 			scorchLocations.clear();
+    		asteroid1 = true;
+    		asteroid2 = true;
+    		asteroid3 = false;
+    		fireDrawn = false;
 
-			PVPEndScreenFrameCounter++;		
+			PVPEndScreenFrameCounter++;	
         }
         else if(gameState == 5){ // PVP Leaderboard GS
         	g.drawImage(PVPLeaderboard, 0, 0, null);
         	leaderboardScreenFrameCounter++;
-        	// Resets after PVP End screen
+        	
+			// Textfile streaming for leaderboard
+			if(!((playerStats.get("1Name")+"").equals("")) && !((playerStats.get("2Name")+"").equals(""))) {
+				try{
+					Scanner players_inputfile = new Scanner(new File("players.txt"));
+					PrintWriter players_outputFile = new PrintWriter(new FileWriter("players.txt"));
+					/*while(players_inputfile.hasNextLine()) {
+						
+					}*/
+					// Format:
+					// Name   wins winrate
+					// Jason_T 10 0.90
+					//playerStats.get(winnerPlayer+"Name")
+					players_outputFile.printf("%s %n %f.1", playerStats.get(winnerPlayer+"Name"), 1, 1);
+					players_outputFile.printf("%s %n %f.1", playerStats.get(loserPlayer+"Name"), 0, 0);
+					players_outputFile.println(playerStats.get("1Name")+"");
+					players_outputFile.println(playerStats.get("2Name")+"");
+					
+					players_outputFile.close();
+				}
+				catch(Exception e) {}	
+			}	
+			
 			winnerPlayer = 0;
 			loserPlayer = 0;
-			
         	//TODO display top 3 players by wins & show their winrate (textfile streaming)
         }
 	}
@@ -595,23 +659,15 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     	// Disable Java from automatically scaling content based on system’s DPI settings
     	System.setProperty("sun.java2d.uiScale", "1.0");
     	// JFrame and JPanel
-    	
     	JFrame frame = new JFrame("Juggernaut Assault");
         Main panel = new Main();
         frame.setIconImage(iconImg.getImage());
         frame.add(panel);
         frame.pack();
         frame.setVisible(true);
-	//  frame.setResizable(false);
+        frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        
-			// Leaderboard Textfile Streaming
-			Scanner players_inputfile = new Scanner(new File("players.txt"));
-			PrintWriter players_outputFile = new PrintWriter(new FileWriter("players.txt"));
-
-			players_outputFile.println(playerStats.get("1Name")+"");
-
-    	
+        	
     	// Image Importation:
     	// GS
     	home 			= ImageIO.read(new File("GameStates/GS0 - Menu Screen.png"));
@@ -623,8 +679,8 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     	PVPLeaderboard 	= ImageIO.read(new File("GameStates/GS5 - PVP Mode Leaderboard.png"));
     	
 		// Obstacles
-		rock 			= ImageIO.read(new File("Obstacles/rock.png"));
-		
+		crate = ImageIO.read(new File("Obstacles/crate.png"));
+		asteroid = ImageIO.read(new File("Obstacles/asteroid.png"));
 		explosion 		= ImageIO.read(new File("Abilities/explosion.png"));
 		
 		
@@ -667,6 +723,11 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 		playerStats.put("2Tank", "Mouse");
 		playerStats.put("1HP", 100);
 		playerStats.put("2HP", 100);
+		
+		for(int i = 0; i < 5; i++) {
+			tankFireImageArr[i] = ImageIO.read(new File("Tank Fires/fire_sprite_"+(i+1)+".png"));
+		}
+		
 		
 		// For PVP End Screen
 		tankImagesEndScreen.put("Titan", ImageIO.read(new File("Tanks - End Screen Versions/Titan Tank.png")));

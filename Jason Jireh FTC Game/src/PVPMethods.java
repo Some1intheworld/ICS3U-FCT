@@ -35,11 +35,11 @@ public class PVPMethods {
 	public static void playerMovement() {
 		// Moves players using their coordinates and direction from playerStats map
 		// based on which turn it is 
-		if(Main.aPressed && (int)Main.playerStats.get(Main.currentTurn+"X") >= -50) {
+		if(Main.aPressed && (int)Main.playerStats.get(Main.currentTurn+"X") >= -50 && movementRestrictionLeft()) {
 			Main.playerStats.put(Main.currentTurn+"X", (int)Main.playerStats.get(Main.currentTurn+"X") - Main.speed);
     		Main.playerStats.put(Main.currentTurn+"GoingRight", false);
     	}
-    	if(Main.dPressed && (int)Main.playerStats.get(Main.currentTurn+"X")+180 <= 2550) {
+    	if(Main.dPressed && (int)Main.playerStats.get(Main.currentTurn+"X")+180 <= 2550 && movementRestrictionRight()) {
     		Main.playerStats.put(Main.currentTurn+"X", (int)Main.playerStats.get(Main.currentTurn+"X") + Main.speed);
     		Main.playerStats.put(Main.currentTurn+"GoingRight", true);
 		}
@@ -71,41 +71,22 @@ public class PVPMethods {
 		public static BufferedImage drawPlayerMouse(int generatePlayer) {
 		// Generates players' tanks, whether facing right, left, or flipped in those orientations
 			BufferedImage drawnImage = new BufferedImage(180, 134, BufferedImage.TYPE_INT_RGB);
-			/*
-			 * if(Main.P1Size.equals("small")) {
-			 * if((Boolean)Main.playerStats.get(generatePlayer+"Dead") &&
-			 * (Boolean)Main.playerStats.get(generatePlayer+"GoingRight")) { // P1 death
-			 * flip facing right drawnImage =
-			 * flipImageVertical(flipImageHorizontal(Main.tankImages.get(Main.playerStats.
-			 * get("Tank Mini")))); Main.tankFlippedLow = 25; } else if
-			 * ((Boolean)Main.playerStats.get(generatePlayer+"Dead")) { // death facing left
-			 * drawnImage = flipImageVertical(Main.rock); Main.tankFlippedLow = 25; } else
-			 * if((Boolean)Main.playerStats.get(generatePlayer+"GoingRight")) { // Alive
-			 * facing right drawnImage = flipImageHorizontal(Main.rock); Main.tankFlippedLow
-			 * = 0; } else { // Alive facing left drawnImage =
-			 * Main.tankImages.get(Main.playerStats.get("Tank Mini")); Main.tankFlippedLow =
-			 * 0; }
-			 */
-			//} else {
-				if((Boolean)Main.playerStats.get(generatePlayer+"Dead") && (Boolean)Main.playerStats.get(generatePlayer+"GoingRight")) { // P1 death flip facing right
-					drawnImage = flipImageVertical(flipImageHorizontal(Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank"))));
-					Main.tankFlippedLow = 25;
-				}
-				else if ((Boolean)Main.playerStats.get(generatePlayer+"Dead")) { // death facing left
-					drawnImage = flipImageVertical(Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank")));
-					Main.tankFlippedLow = 25;
-				}
-				else if((Boolean)Main.playerStats.get(generatePlayer+"GoingRight")) { // Alive facing right
-					drawnImage = flipImageHorizontal(Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank")));
-					Main.tankFlippedLow = 0;
-				}
-				else { // Alive facing left
-					drawnImage = Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank"));
-					Main.tankFlippedLow = 0;
-				//}
+			if((Boolean)Main.playerStats.get(generatePlayer+"Dead") && (Boolean)Main.playerStats.get(generatePlayer+"GoingRight")) { // P1 death flip facing right
+				drawnImage = flipImageVertical(flipImageHorizontal(Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank"))));
+				Main.tankFlippedLow = 25;
+			}
+			else if ((Boolean)Main.playerStats.get(generatePlayer+"Dead")) { // death facing left
+				drawnImage = flipImageVertical(Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank")));
+				Main.tankFlippedLow = 25;
+			}
+			else if((Boolean)Main.playerStats.get(generatePlayer+"GoingRight")) { // Alive facing right
+				drawnImage = flipImageHorizontal(Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank")));
+				Main.tankFlippedLow = 0;
+			}
+			else { // Alive facing left
+				drawnImage = Main.tankImages.get(Main.playerStats.get(generatePlayer+"Tank"));
+				Main.tankFlippedLow = 0;
 		}
-		
-		
 		return drawnImage;	
 	}
 	
@@ -147,9 +128,10 @@ public class PVPMethods {
 	
 		}
 		// !------------ Bomb collision with obstacles
-		/*if(Main.fire && !(Main.bombX>=Main.crateX +300 ||
+		// Crate
+		if(Main.fire && !(Main.bombX>=Main.crateX +350 ||
 				Main.bombX+100<= Main.crateX ||
-				Main.bombY>= Main.crateY + 300||
+				Main.bombY>= Main.crateY + 350||
 				Main.bombY+80<=Main.crateY))
 			{
 				Main.enemyHit = true;
@@ -158,7 +140,34 @@ public class PVPMethods {
 				Main.bombIsInAir = false;
 				changeTurns();
 		
-			}*/
+			}
+		// Asteroid 1
+		if(Main.asteroid1 && (Main.fire && !(Main.bombX>=Main.asteroidX +488 ||
+				Main.bombX+100<= Main.asteroidX ||
+				Main.bombY>= Main.asteroidY + 363||
+				Main.bombY+80<=Main.asteroidY)))
+			{
+				Main.enemyHit = true;
+				Main.explode = true;
+				Main.fire = false;
+				Main.bombIsInAir = false;
+				Main.asteroid1 = false;
+				changeTurns();
+		
+			}
+		if(Main.asteroid2 && (Main.fire && !(Main.bombX>=1650 +488 ||
+				Main.bombX+100<= 1650 ||
+				Main.bombY>= Main.asteroidY + 363||
+				Main.bombY+80<=Main.asteroidY)))
+			{
+				Main.enemyHit = true;
+				Main.explode = true;
+				Main.fire = false;
+				Main.bombIsInAir = false;
+				Main.asteroid2 = false;
+				changeTurns();
+		
+			}
 	}
 	
 	public static void dead() {
@@ -235,5 +244,47 @@ public class PVPMethods {
 	}
 	public static void dealDamage(int damage) {
 		Main.playerStats.put(Main.enemyPlayer+"HP", (int)Main.playerStats.get(Main.enemyPlayer+"HP")-damage);
+	}
+	
+	public static boolean movementRestrictionRight() {
+	    int playerX = (int)Main.playerStats.get(Main.currentTurn + "X");
+	    
+	    // Asteroid 1
+	    if (playerX + 180 > 450 && playerX + 180 < 888 && Main.asteroid1) { 
+	        return false;
+	    }
+	    
+	    // Asteroid 2
+	    if (playerX + 180 > 1710 && playerX + 180 < 2138 && Main.asteroid2) { 
+	        return false;
+	    }
+	    
+	    // Asteroid 3
+	    if (playerX + 180 > Main.asteroidX + 50 && playerX + 180 < Main.asteroidX + 488 && Main.asteroid3) { 
+	        return false;
+	    }
+
+	    return true; 
+	}
+	
+	public static boolean movementRestrictionLeft() {
+	    int playerX = (int)Main.playerStats.get(Main.currentTurn + "X");
+	    
+	    // Asteroid 1
+	    if (playerX < 760 && playerX > 400 && Main.asteroid1) { 
+	        return false;
+	    }
+	    
+	    // Asteroid 2
+	    if (playerX < 2020 && playerX > 1650 && Main.asteroid2) { 
+	        return false;
+	    }
+	    
+	    // Asteroid 3
+	    if (playerX < Main.asteroidX + 488 - 118 && playerX > Main.asteroidX && Main.asteroid3) { 
+	        return false;
+	    }
+
+	    return true;
 	}
 }
