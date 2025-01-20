@@ -146,8 +146,8 @@ public class PVPMethods {
 		
 			}
 		// Asteroid 1
-		if(Main.asteroid1 && (Main.fire && !(Main.bombX>=Main.asteroidX +488 ||
-				Main.bombX+100<= Main.asteroidX ||
+		if(Main.asteroid1 && (Main.fire && !(Main.bombX>=400 +362 ||
+				Main.bombX+100<= 400 ||
 				Main.bombY>= Main.asteroidY + 363||
 				Main.bombY+80<=Main.asteroidY)))
 			{
@@ -159,7 +159,7 @@ public class PVPMethods {
 				changeTurns();
 		
 			}
-		if(Main.asteroid2 && (Main.fire && !(Main.bombX>=1650 +488 ||
+		if(Main.asteroid2 && (Main.fire && !(Main.bombX>=1650 +362 ||
 				Main.bombX+100<= 1650 ||
 				Main.bombY>= Main.asteroidY + 363||
 				Main.bombY+80<=Main.asteroidY)))
@@ -173,7 +173,7 @@ public class PVPMethods {
 		
 			}
 
-		if(Main.asteroid3 && (Main.fire && !(Main.bombX>=Main.asteroidX +488 ||
+		if(Main.asteroid3 && (Main.fire && !(Main.bombX>=Main.asteroidX +362 ||
 			Main.bombX+100<= Main.asteroidX ||
 			Main.bombY>= Main.asteroidY + 363||
 			Main.bombY+80<=Main.asteroidY)))
@@ -185,6 +185,21 @@ public class PVPMethods {
 			Main.asteroid3 = false;
 			changeTurns();
 	
+		}
+		
+	}
+	public static void inCrateCheck() {
+		// Disables 2nd ability when in crate
+		if(!((int)Main.playerStats.get(Main.currentTurn+"X")>=Main.crateX +350 ||
+		(int)Main.playerStats.get(Main.currentTurn+"X")+100<= Main.crateX))
+		{
+			Main.inCrate = true;
+		}
+		if((int)Main.playerStats.get(Main.currentTurn+"X")>=Main.crateX +350 ||
+		(int)Main.playerStats.get(Main.currentTurn+"X")+100<= Main.crateX)
+		{
+			Main.inCrate = false;
+			Main.illegalUse = false;
 		}
 	}
 	public static void deathCheck() {
@@ -255,6 +270,7 @@ public class PVPMethods {
 			}
 		}
 		Main.currentTurn = (Main.currentTurn == 1)? 2 : 1;
+		Main.illegalUse = false;
 	}
 	public static void dealDamage(int damage) {
 		Main.playerStats.put(Main.enemyPlayer+"HP", (int)Main.playerStats.get(Main.enemyPlayer+"HP")-damage);
@@ -285,17 +301,17 @@ public class PVPMethods {
 	    int playerX = (int)Main.playerStats.get(Main.currentTurn + "X");
 	    
 	    // Asteroid 1
-	    if (playerX < 760 && playerX > 400 && Main.asteroid1) { 
+	    if (playerX < 740 && playerX > 400 && Main.asteroid1) { 
 	        return false;
 	    }
 	    
 	    // Asteroid 2
-	    if (playerX < 2020 && playerX > 1650 && Main.asteroid2) { 
+	    if (playerX < 2000 && playerX > 1650 && Main.asteroid2) { 
 	        return false;
 	    }
 	    
 	    // Asteroid 3
-	    if (playerX < Main.asteroidX + 488 - 118 && playerX > Main.asteroidX && Main.asteroid3) { 
+	    if (playerX < Main.asteroidX + 468 - 118 && playerX > Main.asteroidX && Main.asteroid3) { 
 	        return false;
 	    }
 
