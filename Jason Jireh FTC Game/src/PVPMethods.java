@@ -133,7 +133,7 @@ public class PVPMethods {
 		}
 		// !------------ Bomb collision with obstacles
 		// Crate
-		if(Main.fire && !(Main.bombX>=Main.crateX +350 ||
+		if(Main.fire && !bombShotLocation() && !(Main.bombX>=Main.crateX +350 ||
 				Main.bombX+100<= Main.crateX ||
 				Main.bombY>= Main.crateY + 350||
 				Main.bombY+80<=Main.crateY))
@@ -320,6 +320,12 @@ public class PVPMethods {
 	    }
 
 	    return true;
+	}
+	public static boolean bombShotLocation() {
+		if(Main.currentAbility==1 && (int)Main.playerStats.get(Main.currentTurn+"X")>=Main.crateX &&
+		(int)Main.playerStats.get(Main.currentTurn+"X")+180<= Main.crateX+350)
+		return true;
+		return false;
 	}
 
 	public static boolean checkObstaclePlacing() {

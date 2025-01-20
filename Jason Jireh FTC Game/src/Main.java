@@ -21,6 +21,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	// 5 <- Solo Mode Leaderboard	
     public static int gameState = 0;
     public static boolean isPaused;
+    public static boolean howToPlayClicked;
     
     // ! Buffered Images
     //GS base images
@@ -31,7 +32,8 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     public static BufferedImage PVPPause;
     public static BufferedImage PVPEnd;
     public static BufferedImage PVPLeaderboard;
-
+    public static BufferedImage howToPlay;
+    
 	// Objects Images
 	public static BufferedImage crate;
 	public static BufferedImage rock;
@@ -191,44 +193,55 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	}
     		previousGS = 0;
     		leaderboardStreamed = false;
-        	// Detecting click for the menu buttons
-        	// Tank selection button
-        	if((mouseX>=40 && mouseX<=210) && (mouseY>=330 && mouseY<=500)) {
-        		gameState = 2;
+    		if(!howToPlayClicked) {
+	        	// Detecting click for the menu buttons
+	        	// Tank selection button
+	        	if((mouseX>=40 && mouseX<=210) && (mouseY>=330 && mouseY<=500)) {
+	        		gameState = 2;
+	        		mouseReset = true;
+	        	}
+	        	// Credits button
+	        	if((mouseX>=40 && mouseX<=210) && (mouseY>=600 && mouseY<=770)) {
+	        		gameState = 1;
+	        		mouseReset = true;
+	        	}
+	        	// Leaderboard button
+	        	if((mouseX>=2275 && mouseX<=2460) && (mouseY>=330 && mouseY<=515)) {
+	        		gameState = 5;
+	        		mouseReset = true;
+	        	}
+	        	// Video tutorial button
+	        	if((mouseX>=2275 && mouseX<=2460) && (mouseY>=600 && mouseY<=785)) {
+	        		 try {
+	                     // Create a URI object from the URL
+	                     URI uri = new URI("https://www.youtube.com/watch?v=xvFZjo5PgG0");
+	                     // Use Desktop to open the link in the default browser
+	                     if (Desktop.isDesktopSupported()) {
+	                         Desktop desktop = Desktop.getDesktop();
+	                         desktop.browse(uri);  // Open the URL in the default browser
+	                     } else {
+	                         System.out.println("Desktop not supported");
+	                     }
+	                 } catch (URISyntaxException | java.io.IOException ex) {
+	                     ex.printStackTrace();
+	                 }
+	        		mouseReset = true;
+	        	}
+	        	// START button
+	        	if((mouseX>=710 && mouseX<=1715) && (mouseY>=1015 && mouseY<=1170)) {
+	        		gameState = 3;
+	        		mouseReset = true;
+	        	}
+	        	// How to play
+	        	if((mouseX>=1900 && mouseX<=2290) && (mouseY>=1038 && mouseY<=1152)) {
+	        		howToPlayClicked = true;
+	        		mouseReset = true;
+	        	}
+    		}
+        	if(howToPlayClicked) {
+        		g.drawImage(howToPlay, 0, 0, null);
         		mouseReset = true;
-        	}
-        	// Credits button
-        	if((mouseX>=40 && mouseX<=210) && (mouseY>=600 && mouseY<=770)) {
-        		gameState = 1;
-        		mouseReset = true;
-        	}
-        	// Leaderboard button
-        	if((mouseX>=2275 && mouseX<=2460) && (mouseY>=330 && mouseY<=515)) {
-        		gameState = 5;
-        		mouseReset = true;
-        	}
-        	// Video tutorial button
-        	if((mouseX>=2275 && mouseX<=2460) && (mouseY>=600 && mouseY<=785)) {
-        		 try {
-                     // Create a URI object from the URL
-                     URI uri = new URI("https://www.youtube.com/watch?v=xvFZjo5PgG0");
-                     // Use Desktop to open the link in the default browser
-                     if (Desktop.isDesktopSupported()) {
-                         Desktop desktop = Desktop.getDesktop();
-                         desktop.browse(uri);  // Open the URL in the default browser
-                     } else {
-                         System.out.println("Desktop not supported");
-                     }
-                 } catch (URISyntaxException | java.io.IOException ex) {
-                     ex.printStackTrace();
-                 }
-        		mouseReset = true;
-        	}
-        	// START button
-        	if((mouseX>=710 && mouseX<=1715) && (mouseY>=1015 && mouseY<=1170)) {
-        		gameState = 3;
-        		mouseReset = true;
-        	}
+        	}        	
         }
         else if(gameState == 1){ // Credits GS
         	g.drawImage(credits, 0, 0, null);
@@ -818,6 +831,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     	PVPPause 		= ImageIO.read(new File("PVP Pause Screen.png"));
     	PVPEnd 			= ImageIO.read(new File("GameStates/GS4 - PVP End Screen.png"));
     	PVPLeaderboard 	= ImageIO.read(new File("GameStates/GS5 - PVP Mode Leaderboard.png"));
+    	howToPlay		= ImageIO.read(new File("How To Play.png"));
     	
 		// Obstacles
 		crate = ImageIO.read(new File("Obstacles/crate.png"));
@@ -893,7 +907,9 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     public void mousePressed(MouseEvent e) {
     	mouseX = e.getX();
     	mouseY = e.getY();
-    	
+    	if(gameState == 0) {
+    		howToPlayClicked = false;
+    	}
     	if(gameState == 1)
     		gameState = 0;
     	else if(gameState == 4 && PVPEndScreenFrameCounter >= 30) {
@@ -922,6 +938,9 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 
     public void keyTyped(KeyEvent e) {}
     public void keyPressed(KeyEvent e) {	
+    	if(gameState == 0) {
+    		howToPlayClicked = false;
+    	}
     	if(gameState == 1)
     		gameState = 0;
     	else if(gameState == 2 ){
