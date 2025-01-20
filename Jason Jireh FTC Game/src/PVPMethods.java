@@ -190,16 +190,20 @@ public class PVPMethods {
 	}
 	public static void inCrateCheck() {
 		// Disables 2nd ability when in crate
-		if(!((int)Main.playerStats.get(Main.currentTurn+"X")>=Main.crateX +350 ||
-		(int)Main.playerStats.get(Main.currentTurn+"X")+100<= Main.crateX))
+		if((int)Main.playerStats.get(Main.currentTurn+"X")>=Main.crateX &&
+		(int)Main.playerStats.get(Main.currentTurn+"X")+180<= Main.crateX+350)
 		{
-			Main.inCrate = true;
+			if(("Titan".equals(Main.playerStats.get(Main.currentTurn+"Tank"))
+					||"Sentinel".equals(Main.playerStats.get(Main.currentTurn+"Tank")))
+					&& Main.currentAbility == 2){
+				Main.inCrate = true;
+			}
+					
 		}
-		if((int)Main.playerStats.get(Main.currentTurn+"X")>=Main.crateX +350 ||
-		(int)Main.playerStats.get(Main.currentTurn+"X")+100<= Main.crateX)
+		if(!((int)Main.playerStats.get(Main.currentTurn+"X")>=Main.crateX &&
+		(int)Main.playerStats.get(Main.currentTurn+"X")+100<= Main.crateX+350))
 		{
 			Main.inCrate = false;
-			Main.illegalUse = false;
 		}
 	}
 	public static void deathCheck() {
@@ -270,7 +274,7 @@ public class PVPMethods {
 			}
 		}
 		Main.currentTurn = (Main.currentTurn == 1)? 2 : 1;
-		Main.illegalUse = false;
+		Main.inCrate = false;
 	}
 	public static void dealDamage(int damage) {
 		Main.playerStats.put(Main.enemyPlayer+"HP", (int)Main.playerStats.get(Main.enemyPlayer+"HP")-damage);

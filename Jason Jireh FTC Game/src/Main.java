@@ -147,7 +147,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	public static double reachTime; 
 	
 	public static boolean inCrate;
-	public static boolean illegalUse;
 	
     // For PVP End Screen GS
     public static int winnerPlayer;
@@ -419,6 +418,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			enemyPlayer = (currentTurn == 1)? 2 : 1;
 			// ! ======== Bomb Ability =======
 			if(currentAbility == 1 && !isPaused && !gameOver) {
+				inCrate = false;
 				if(!fire && !isPaused && !gameOver) {
 					PVPMethods.powerRangeDeterminer();
 					PVPMethods.velocityDeterminer();
@@ -461,6 +461,12 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			{	
 				// ------ Titan Lightning Strike -------
 				if("Titan".equals(playerStats.get(currentTurn+"Tank")) &&  !inCrate) {
+					PVPMethods.inCrateCheck();
+					if(inCrate) {
+			    		g.setColor(new Color(255, 49, 49));
+						g.setFont(new Font("Arial", 0, 30));
+						g.drawString("Can't use when in Crate!", (int)playerStats.get(currentTurn+"X")-70, (int)playerStats.get(currentTurn+"Y")-30);
+			    	}
 					currentAbilityName = "Lightning Strike";
 					Graphics2D g2 = (Graphics2D) g.create();
 		        	g2.setStroke(new BasicStroke(3));
@@ -471,7 +477,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 						if(!((int) playerStats.get(enemyPlayer+"X") >=(int) b.getX()+100 ||
 						   (int) playerStats.get(enemyPlayer+"X")+180 <=(int) b.getX()-100)){		
 							PVPMethods.dealDamage(100);
-							//PVPMethods.dealDamage(baseDamage / 2);
 							speed = 1;
 							baseDamage = 6;
 							affected = enemyPlayer;
@@ -529,6 +534,12 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 				
 				// ------- Sentinel electrogun ----------
 				else if("Sentinel".equals(playerStats.get(currentTurn+"Tank"))  && !inCrate) {
+					PVPMethods.inCrateCheck();
+					if(inCrate) {
+			    		g.setColor(new Color(255, 49, 49));
+						g.setFont(new Font("Arial", 0, 30));
+						g.drawString("Can't use when in Crate!", (int)playerStats.get(currentTurn+"X")-70, (int)playerStats.get(currentTurn+"Y")-30);
+			    	}
 					currentAbilityName = "Electrogun";
 					PointerInfo a = MouseInfo.getPointerInfo();
 					Point b = a.getLocation();
@@ -576,7 +587,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	    	PVPMethods.deathCheck();
 	    	
 	    	PVPMethods.inCrateCheck();
-	    	if(illegalUse) {
+	    	if(inCrate) {
 	    		g.setColor(new Color(255, 49, 49));
 				g.setFont(new Font("Arial", 0, 30));
 				g.drawString("Can't use when in Crate!", (int)playerStats.get(currentTurn+"X")-70, (int)playerStats.get(currentTurn+"Y")-30);
@@ -644,11 +655,10 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     		asteroid3 = false;
     		fireDrawn = false;
     		inCrate = false;
-    		illegalUse = false;
 
     		deathDevKeyUsed = false;
     		deathDevKeyUsed = false;
-    		
+    		leaderboardStreamed = false;
 			PVPEndScreenFrameCounter++;	
         }
         else if(gameState == 5){ // PVP Leaderboard GS
@@ -974,18 +984,8 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			if(e.getKeyChar() == '1' && !isPaused && !gameOver){
 				currentAbility = 1;
 			}
-			if(e.getKeyChar() == '2' && !isPaused && !gameOver){
-				if(!inCrate) {
-					currentAbility = 2;
-				}
-				else if(inCrate) {
-					if (!"Titan".equals(playerStats.get(currentTurn+"Tank")) && !"Sentinel".equals(playerStats.get(currentTurn+"Tank"))){
-						currentAbility = 2;
-					}
-					else {
-						illegalUse = true;
-					}
-				}
+			if(e.getKeyChar() == '2' && !isPaused && !gameOver && !bombIsInAir){
+				currentAbility = 2;
 				
 			}			
 
