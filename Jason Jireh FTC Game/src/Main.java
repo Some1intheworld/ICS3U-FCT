@@ -3,9 +3,10 @@ import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import javax.imageio.ImageIO;
 import java.awt.event.*;
-import java.util.ArrayList;
 
 public class Main extends JPanel implements KeyListener, MouseListener, Runnable {
     // JFrame icon
@@ -157,6 +158,12 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     public static int leaderboardScreenFrameCounter = 0;
     public static String[] leaderboardPlayers = new String[4];
     
+    public static boolean deathDevKeyUsed;
+    public static boolean gameDevKeyUsed;
+    public static boolean leaderboardStreamed;
+    public static int playersShown;
+	public static int displaySpacing;
+    
     // JPanel Settings
     public Main(){
         setPreferredSize(new Dimension(2500, 1250));
@@ -182,6 +189,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         		mouseReset = false;
         	}
     		previousGS = 0;
+    		leaderboardStreamed = false;
         	// Detecting click for the menu buttons
         	// Tank selection button
         	if((mouseX>=40 && mouseX<=210) && (mouseY>=330 && mouseY<=500)) {
@@ -200,8 +208,19 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	}
         	// Video tutorial button
         	if((mouseX>=2275 && mouseX<=2460) && (mouseY>=600 && mouseY<=785)) {
-        		// TODO
-        		System.out.println("welcome to the video tutorial (coming soon)");
+        		 try {
+                     // Create a URI object from the URL
+                     URI uri = new URI("https://www.youtube.com/watch?v=xvFZjo5PgG0");
+                     // Use Desktop to open the link in the default browser
+                     if (Desktop.isDesktopSupported()) {
+                         Desktop desktop = Desktop.getDesktop();
+                         desktop.browse(uri);  // Open the URL in the default browser
+                     } else {
+                         System.out.println("Desktop not supported");
+                     }
+                 } catch (URISyntaxException | java.io.IOException ex) {
+                     ex.printStackTrace();
+                 }
         		mouseReset = true;
         	}
         	// START button
@@ -270,7 +289,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         					tankSelectLocations.get(playerStats.get("1Tank")+"Y")-30, 338, 393);
     		}
 
-        	// allow player to choose player name (TODO textfile streaming)
     		g2.setStroke(new BasicStroke(3));
     		if(mouseX >= 600 && mouseX <= 1143 && mouseY >= 400 && mouseY <= 485) {
 				isTypingP1 = true;
@@ -310,7 +328,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 
 			g.setColor(new Color(255, 255, 255));
 			g.setFont(new Font("Arial", 0, 30));
-			g.drawString("Power", 333, 530);
+			g.drawString("Bomb Power", 290, 530);
 
         	g.setColor(new Color(0, 0, 0));
         	g.setFont(new Font("Arial", 1, 50));
@@ -373,12 +391,14 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			// HP:
         	g.setColor(new Color(150, 0, 0));
 
-			if(!(Boolean)playerStats.get("1Dead")) g.fillRect(500, 21, (int)playerStats.get("1HP")*6-51, 104);
-			if(!(Boolean)playerStats.get("2Dead")) g.fillRect(2060, 21, -(int)playerStats.get("2HP") *6+51, 104);
+			if(!(Boolean)playerStats.get("1Dead")) g.fillRect(500, 21, (int)playerStats.get("1HP")*6, 104);
+			if(!(Boolean)playerStats.get("2Dead")) g.fillRect(2060, 21, -(int)playerStats.get("2HP")*6, 104);
 			
         	g.setColor(new Color(0, 0, 0));
-			g.drawString((int)playerStats.get("1HP") +"", 683, 90);
-			g.drawString((int)playerStats.get("2HP") + "", 1792, 90);
+        	if(!(Boolean)playerStats.get("1Dead")) g.drawString((int)playerStats.get("1HP") +"", 683, 90);
+        	else g.drawString("0", 683, 90);
+			if(!(Boolean)playerStats.get("2Dead")) g.drawString((int)playerStats.get("2HP") + "", 1792, 90);
+			else g.drawString("0", 1792, 90);
 					
 			// Fire button
 			g.setColor(new Color(0, 0, 0));
@@ -393,16 +413,15 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			
 			enemyPlayer = (currentTurn == 1)? 2 : 1;
 			// ! ======== Bomb Ability =======
-			if(!fire && !isPaused && !gameOver) {
-				PVPMethods.powerRangeDeterminer();
-				PVPMethods.velocityDeterminer();
-			}
-			if(bombStarted) { 
-				PVPMethods.bombStartAndDirectionLocate();
-				bombStarted = false;
-			}
-
 			if(currentAbility == 1 && !isPaused && !gameOver) {
+				if(!fire && !isPaused && !gameOver) {
+					PVPMethods.powerRangeDeterminer();
+					PVPMethods.velocityDeterminer();
+				}
+				if(bombStarted) { 
+					PVPMethods.bombStartAndDirectionLocate();
+					bombStarted = false;
+				}
 				currentAbilityName = "Bomb";
 				PVPMethods.bombDirection();
 				if(!fire && (Boolean)playerStats.get(currentTurn+"GoingRight")){
@@ -435,7 +454,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			} 
 			else if(currentAbility == 2  && !isPaused && !gameOver)
 			{	
-				// ------ Titan Lightning Strike -------JJ
+				// ------ Titan Lightning Strike -------
 				if(playerStats.get(currentTurn+"Tank") == "Titan") {
 					currentAbilityName = "Lightning Strike";
 					Graphics2D g2 = (Graphics2D) g.create();
@@ -446,8 +465,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 					if(activated) { // lightning strike
 						if(!((int) playerStats.get(enemyPlayer+"X") >=(int) b.getX()+100 ||
 						   (int) playerStats.get(enemyPlayer+"X")+180 <=(int) b.getX()-100)){		
-							//PVPMethods.dealDamage(baseDamage / 2);
-							PVPMethods.dealDamage(100);
+							PVPMethods.dealDamage(baseDamage / 2);
 							speed = 1;
 							baseDamage = 6;
 							affected = enemyPlayer;
@@ -459,18 +477,19 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 					}
 				}
 				
-				// ------ Ironclad Damage Reduce ------- JJ
+				// ------ Ironclad Damage Reduce ------- 
 				else if(playerStats.get(currentTurn+"Tank") == "Ironclad") {
 					currentAbilityName = "Damage Reduce";
 					if(activated) {
-						frameCounter += 1;
+						frameCounter++;
 						if(!damageReductionDone) {
 							baseDamage /= 2;
 							damageReductionDone = true;
+							affected = enemyPlayer;
 						}
-						affected = enemyPlayer;
-						g.drawImage(shield, 700, 550, null);
-						if(frameCounter == 30) {
+						g.drawImage(shield, (int)playerStats.get(currentTurn+"X")+180, 550, null);
+						g.drawImage(shield, (int)playerStats.get(currentTurn+"X")-523, 550, null);
+						if(frameCounter >= 30) {
 							activated = false;
 							frameCounter = 0;
 							PVPMethods.changeTurns();
@@ -489,23 +508,16 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 					Point b = a.getLocation();
 					g2.setColor(new Color(110, 110, 110));
 					g2.fillOval((int) b.getX()-100, 860, 488, 100);
-					int playerX = (int)Main.playerStats.get(Main.currentTurn + "X");
-					int enemyX = (int)Main.playerStats.get(Main.enemyPlayer + "X");
-					g.drawString((((int) b.getX()-100 - 90 <= playerX + 180 && (int) b.getX()-100 + 90 >= playerX) || 
-					((int) b.getX()-100 - 90 <= enemyX + 180 && (int) b.getX()-100 + 90 >= enemyX)) + "", 1000, 1000);
-				
+
 					if(activated) { 
-						if(true) { // TODO: only allow to place it it's not on player or enemy
+						if(PVPMethods.checkObstaclePlacing()) {
 							asteroidX = (int) b.getX()-100;
 							asteroid3 = true;
 							activated = false;
 							PVPMethods.changeTurns();
 						} else {
 							activated = false;
-						}
-
-
-						
+						}	
 					} 
 				}
 				
@@ -559,14 +571,16 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	    	
 	    	if(gameOver && !fireDrawn) {
 	    		fireFrameCounter++;
-	    		if(fireFrameCounter%4==0) {
-	    			tankFireIndex = fireFrameCounter/4;
-	    		}
-    			g.drawImage(tankFireImageArr[tankFireIndex], (int)playerStats.get(loserPlayer+"X"), (int)playerStats.get(loserPlayer+"Y")-32, null);
-	    		if(fireFrameCounter == 16) {
-	    			fireDrawn = true;
-	    			tankFireIndex = 0;
-	    			fireFrameCounter = 0;
+	    		if(!deathDevKeyUsed) {
+	    			if(fireFrameCounter%4==0) {
+		    			tankFireIndex = fireFrameCounter/4;
+		    		}
+	    			g.drawImage(tankFireImageArr[tankFireIndex], (int)playerStats.get(loserPlayer+"X"), (int)playerStats.get(loserPlayer+"Y")-32, null);
+		    		if(fireFrameCounter >= 16) {
+		    			fireDrawn = true;
+		    			tankFireIndex = 0;
+		    			fireFrameCounter = 0;
+		    		}
 	    		}
 	    	}
 			
@@ -578,8 +592,8 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 	     
         
         else if(gameState == 4) { // PVP End Screen GS
-        	g.drawImage(PVPEnd, 0, 0, null);
         	previousGS = 4;
+        	g.drawImage(PVPEnd, 0, 0, null);
         	// Displaying winner	
 			g.setColor(new Color(255, 255, 255)); 
 			g.setFont(new Font("Arial", 1, 70));
@@ -595,8 +609,6 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     		playerStats.put("2Y", 800);
     		playerStats.put("1GoingRight", true);
     		playerStats.put("2GoingRight", false);
-    		playerStats.put("1Dead", false);
-    		playerStats.put("2Dead", false);
     		playerStats.put("1HP", 100);
     		playerStats.put("2HP", 100);
         	// General game resets
@@ -620,6 +632,9 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
     		asteroid3 = false;
     		fireDrawn = false;
 
+    		deathDevKeyUsed = false;
+    		deathDevKeyUsed = false;
+    		
 			PVPEndScreenFrameCounter++;	
         }
         else if(gameState == 5){ // PVP Leaderboard GS
@@ -627,34 +642,137 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         	leaderboardScreenFrameCounter++;
         	
 			// Textfile streaming for leaderboard
-			if(!((playerStats.get("1Name")+"").equals("")) && !((playerStats.get("2Name")+"").equals(""))) {
-				try{
-					Scanner players_inputfile = new Scanner(new File("players.txt"));
-					PrintWriter players_outputFile = new PrintWriter(new FileWriter("players.txt"));
-					/*while(players_inputfile.hasNextLine()) {
-						
-					}*/
-					// Format:
-					// Name   wins winrate
-					// Jason_T 10 0.90
-					//playerStats.get(winnerPlayer+"Name")
-					players_outputFile.printf("%s %n %f.1", playerStats.get(winnerPlayer+"Name"), 1, 1);
-					players_outputFile.printf("%s %n %f.1", playerStats.get(loserPlayer+"Name"), 0, 0);
-					players_outputFile.println(playerStats.get("1Name")+"");
-					players_outputFile.println(playerStats.get("2Name")+"");
-					
-					players_outputFile.close();
+			if(!((playerStats.get("1Name")+"").equals("")) && !((playerStats.get("2Name")+"").equals(""))
+					&& !gameDevKeyUsed && !leaderboardStreamed && previousGS==4) {
+				readLeaderboard();
+				
+				// updating p1
+				updateLeaderboard(playerStats.get("1Name")+"", !(Boolean)playerStats.get("1Dead"));
+				// updating p2
+				updateLeaderboard(playerStats.get("2Name")+"", !(Boolean)playerStats.get("2Dead"));
+				sortLeaderboard();
+				leaderboardStreamed = true;
+			}
+			g.setColor(new Color(255, 255, 255));
+			g.setFont(new Font("Arial", 1, 70));
+			try {
+				Scanner inputFile = new Scanner(new File("players.txt"));
+				if(inputFile.hasNextLine()) inputFile.nextLine();
+				while(inputFile.hasNextLine() && playersShown < 3) {
+					playersShown++;
+					String line = inputFile.nextLine();
+					String[] lineParts = line.split("\\s+");
+					g.drawString(lineParts[0], 592, 670+displaySpacing);
+					g.drawString(String.format("%.0f", Double.parseDouble(lineParts[1])), 1345, 670+displaySpacing);
+					g.drawString(String.format("%.1f", Double.parseDouble(lineParts[2])*100)+"%", 1760, 670+displaySpacing);
+					displaySpacing += 130;
 				}
-				catch(Exception e) {}	
-			}	
+				inputFile.close();
+				playersShown = 0;
+				displaySpacing = 0;		
+			} catch (IOException e) {
+	        	e.printStackTrace();
+	        }
 			
 			winnerPlayer = 0;
 			loserPlayer = 0;
-        	//TODO display top 3 players by wins & show their winrate (textfile streaming)
+    		playerStats.put("1Dead", false);
+    		playerStats.put("2Dead", false);
         }
+	} 
+	public static ArrayList<String> sortLine(ArrayList<String> lines){
+		ArrayList<String> newLines = lines;
+		int len = newLines.size();
+		for(int i = 0;i<len-1;i++)
+		{
+			for(int j = 0;j<len -1- i;j++)
+			{
+				String str = newLines.get(j);
+				String[] parts1 = str.split("\\s+");
+				double num1 = Double.parseDouble(parts1[1]);
+				String str2 = newLines.get(j+1);
+				String[] parts2 = str2.split("\\s+");
+				double num2 = Double.parseDouble(parts2[1]);
+				if(num1<num2){
+					String temp = newLines.get(j);
+                    newLines.set(j, newLines.get(j+1));
+                    newLines.set(j+1, temp);
+				}
+			}
+		}
+		return newLines;
 	}
+	// Leaderboard methods
+    public static void sortLeaderboard() {
+        ArrayList<String> lines = new ArrayList<>();
+        
+        try {
+            Scanner inputFile = new Scanner(new File("players.txt"));
+			inputFile.nextLine();
+			while (inputFile.hasNextLine()) {
+                lines.add(inputFile.nextLine());
+            }
+			inputFile.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } 
+		lines = sortLine(lines);
+        
+        try {
+        	PrintWriter outputFile = new PrintWriter(new File("players.txt"));
+            for (String line : lines) {
+				outputFile.println();
+                outputFile.print(line);
+            }
+			
+            outputFile.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     
-    // Mouse and Keyboard Methods
+    public static Map<String, double[]> readLeaderboard() {
+        Map<String, double[]> leaderboard = new HashMap<>();
+        try {
+        	Scanner inputFile = new Scanner(new File("players.txt"));
+        	while (inputFile.hasNextLine()) {
+            	String name = inputFile.next();
+                double wins = inputFile.nextDouble();
+                double winrate = inputFile.nextDouble();
+                double battles = inputFile.nextDouble();
+                double[] gameStats = {wins, winrate, battles};
+                leaderboard.put(name, gameStats);
+            }
+        	inputFile.close();
+        } catch (IOException e) {
+        	e.printStackTrace();
+        }
+        return leaderboard;
+    }
+    public static void updateLeaderboard(String playerName, boolean win) {
+        Map<String, double[]> leaderboard = readLeaderboard();
+        double[] gameStatsDefault = {0, 0, 0};
+        // Update the player's wins or add a new player
+        double[] gameStatsUpdate = leaderboard.getOrDefault(playerName, gameStatsDefault);
+        gameStatsUpdate[2]++;
+        if(win) gameStatsUpdate[0]++;
+        gameStatsUpdate[1] = gameStatsUpdate[0]/gameStatsUpdate[2];
+        leaderboard.put(playerName, gameStatsUpdate);
+        // Write the updated leaderboard back to the file
+        try {
+        	PrintWriter outputFile = new PrintWriter(new FileWriter("players.txt"));
+        	for (Map.Entry<String, double[]> entry : leaderboard.entrySet()) {
+            	String name = entry.getKey();
+            	double[] stats = entry.getValue();
+            	outputFile.println();
+            	outputFile.printf("%s %f %f %f", name, stats[0], stats[1], stats[2]);
+            }
+        	outputFile.close();
+        } catch (IOException e) {
+        	e.printStackTrace();
+        }
+    }
+    
 	public static void main(String[] args) throws IOException{
     	// Disable Java from automatically scaling content based on system’s DPI settings
     	System.setProperty("sun.java2d.uiScale", "1.0");
@@ -828,20 +946,22 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			// Dev keys
     		if(e.getKeyChar() == '=' && !isPaused && !gameOver) { // dev key for finishing in PVP mode
     			gameState = 4;
+    			gameDevKeyUsed = true;
     		}
     		if(e.getKeyChar() == '/' && !isPaused && !gameOver) { // dev key for player turn switch
     			PVPMethods.changeTurns();
     		}
-    		if(e.getKeyChar() == '0' && !isPaused && !gameOver) { // dev key for killing both tanks & reviving
+    		if(e.getKeyChar() == '0' && !isPaused) { // dev key for killing both tanks & reviving
     			playerStats.put("1Dead", !(Boolean)playerStats.get("1Dead"));
     			playerStats.put("2Dead", !(Boolean)playerStats.get("2Dead"));
     			gameOver = !gameOver;
+    			deathDevKeyUsed = true;
     		}
 
-			if(e.getKeyChar() == '1' && !isPaused){
+			if(e.getKeyChar() == '1' && !isPaused && !gameOver){
 				currentAbility = 1;
 			}
-			if(e.getKeyChar() == '2' && !isPaused){
+			if(e.getKeyChar() == '2' && !isPaused && !gameOver){
 				currentAbility = 2;
 			}
 			

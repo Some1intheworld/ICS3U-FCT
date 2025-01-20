@@ -1,6 +1,10 @@
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.PointerInfo;
 import java.awt.image.BufferedImage;
+
 
 public class PVPMethods {
 	
@@ -168,10 +172,20 @@ public class PVPMethods {
 				changeTurns();
 		
 			}
-	}
-	
-	public static void dead() {
 
+		if(Main.asteroid3 && (Main.fire && !(Main.bombX>=Main.asteroidX +488 ||
+			Main.bombX+100<= Main.asteroidX ||
+			Main.bombY>= Main.asteroidY + 363||
+			Main.bombY+80<=Main.asteroidY)))
+		{
+			Main.enemyHit = true;
+			Main.explode = true;
+			Main.fire = false;
+			Main.bombIsInAir = false;
+			Main.asteroid3 = false;
+			changeTurns();
+	
+		}
 	}
 	public static void deathCheck() {
 		// Checks if any player is dead and changes the necessary variables
@@ -286,5 +300,20 @@ public class PVPMethods {
 	    }
 
 	    return true;
+	}
+
+	public static boolean checkObstaclePlacing() {
+			PointerInfo a = MouseInfo.getPointerInfo();
+			Point b = a.getLocation();
+			int playerX = (int)Main.playerStats.get(Main.currentTurn + "X");
+			int enemyX = (int)Main.playerStats.get(Main.enemyPlayer + "X");
+			int mouseX = (int) b.getX()-100;
+			if((playerX >= mouseX && playerX <= mouseX + 488) || (playerX + 180 <= mouseX + 488 && playerX + 180 >= mouseX)) {
+				return false;
+			}
+			if((enemyX >= mouseX && enemyX <= mouseX + 488) || (enemyX + 180 <= mouseX + 488 && enemyX + 180 >= mouseX)) {
+				return false;
+			}
+			return true;
 	}
 }
