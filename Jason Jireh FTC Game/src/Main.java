@@ -389,8 +389,11 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 			
 			
 			// HP:
-        	g.setColor(new Color(150, 0, 0));
-
+        	g.setColor(new Color(255, 255, 255));
+        	g.fillRect(500, 21, 600, 104);
+        	g.fillRect(2060, 21, -600, 104);
+        	
+			g.setColor(new Color(150, 0, 0));
 			if(!(Boolean)playerStats.get("1Dead")) g.fillRect(500, 21, (int)playerStats.get("1HP")*6, 104);
 			if(!(Boolean)playerStats.get("2Dead")) g.fillRect(2060, 21, -(int)playerStats.get("2HP")*6, 104);
 			
