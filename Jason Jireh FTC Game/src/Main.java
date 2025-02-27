@@ -489,7 +489,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
 					if(activated) { // lightning strike
 						if(!((int) playerStats.get(enemyPlayer+"X") >=(int) b.getX()+100 ||
 						   (int) playerStats.get(enemyPlayer+"X")+180 <=(int) b.getX()-100)){		
-							PVPMethods.dealDamage(100);
+							PVPMethods.dealDamage(baseDamage / 2);
 							speed = 1;
 							baseDamage = 6;
 							affected = enemyPlayer;
@@ -819,7 +819,7 @@ public class Main extends JPanel implements KeyListener, MouseListener, Runnable
         frame.add(panel);
         frame.pack();
         frame.setVisible(true);
-        frame.setResizable(false);
+        //frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         	
     	// Image Importation:
